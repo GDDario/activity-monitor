@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "dart": {
+      "command": "dart",
+      "args": [
+        "mcp-server",
+        "--enable",
+        "flutter_app_lifecycle",
+        "--enable",
+        "run_tests",
+        "--enable",
+        "dart_format"
+      ]
+    }
+  }
+}

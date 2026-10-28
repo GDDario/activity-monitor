@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "dart": {
+        "type": "local",
+        "command": [
+          "dart",
+          "mcp-server",
+          "--enable",
+          "flutter_app_lifecycle",
+          "--enable",
+          "run_tests",
+          "--enable",
+          "dart_format"
+        ],
+        "cwd": "./app"
+      }
+    }
+  },
+  "skills": ["./app/.agents/skills"],
+  "instructions": ["app/AGENTS.md"]
+}
