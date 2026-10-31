@@ -18,7 +18,7 @@ class ActivityMonitorApp extends ConsumerWidget {
         theme: ActivityTheme.light(),
         routerConfig: ref.watch(appRouterProvider),
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
-        supportedLocales: const [Locale('en')],
+        supportedLocales: const [Locale('en', 'US'), Locale('pt', 'BR')],
       ),
     );
   }
