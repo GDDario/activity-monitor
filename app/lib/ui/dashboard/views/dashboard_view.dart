@@ -2,46 +2,18 @@ import 'package:flutter/material.dart';
 
 import 'package:app/ui/core/theme/activity_theme.dart';
 import 'package:app/ui/core/widgets/activity_card.dart';
+import 'package:app/ui/core/widgets/application_shell.dart';
+import 'package:app/ui/core/widgets/screen_title_bar.dart';
 import 'package:app/ui/core/widgets/section_header.dart';
 
 class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
 
-  static const _wideLayoutBreakpoint = 840.0;
-
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= _wideLayoutBreakpoint;
-        return Scaffold(
-          body: SafeArea(
-            child: Row(
-              children: [
-                if (isWide) const _SideNavigation(),
-                Expanded(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1120),
-                      child: const _DashboardContent(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          bottomNavigationBar: isWide ? null : const _BottomNavigation(),
-          floatingActionButton: isWide
-              ? null
-              : FloatingActionButton(
-                  tooltip: 'Add activity',
-                  onPressed: () {},
-                  backgroundColor: ActivityColors.primaryContainer,
-                  foregroundColor: Colors.white,
-                  child: const Icon(Icons.add),
-                ),
-        );
-      },
+    return const ApplicationShell(
+      destination: AppDestination.today,
+      child: _DashboardContent(),
     );
   }
 }
@@ -59,7 +31,10 @@ class _DashboardContent extends StatelessWidget {
         112,
       ),
       children: const [
-        _Greeting(),
+        ScreenTitleBar(
+          title: 'Good morning',
+          phrase: 'Today · Move with intention',
+        ),
         SizedBox(height: ActivitySpace.md),
         _FilterBar(),
         SizedBox(height: ActivitySpace.lg),
@@ -91,54 +66,6 @@ class _DashboardContent extends StatelessWidget {
           description: 'A quiet 25-minute block for your next meaningful task.',
           timeLabel: '2:30 PM',
           statusLabel: 'Focus',
-        ),
-      ],
-    );
-  }
-}
-
-class _Greeting extends StatelessWidget {
-  const _Greeting();
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 24,
-          backgroundColor: ActivityColors.primarySoft,
-          child: Text(
-            'AM',
-            style: textTheme.labelLarge?.copyWith(
-              color: ActivityColors.primary,
-            ),
-          ),
-        ),
-        const SizedBox(width: ActivitySpace.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Today · Move with intention', style: textTheme.bodySmall),
-              Text(
-                'Good morning',
-                style: textTheme.headlineMedium?.copyWith(
-                  color: ActivityColors.primary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        IconButton(
-          tooltip: 'Open calendar',
-          onPressed: () {},
-          icon: const Icon(Icons.calendar_today_outlined),
-        ),
-        IconButton(
-          tooltip: 'Open notifications',
-          onPressed: () {},
-          icon: const Badge(child: Icon(Icons.notifications_none_outlined)),
         ),
       ],
     );
@@ -254,74 +181,6 @@ class _ProgressCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _BottomNavigation extends StatelessWidget {
-  const _BottomNavigation();
-
-  @override
-  Widget build(BuildContext context) {
-    return NavigationBar(
-      selectedIndex: 0,
-      destinations: const [
-        NavigationDestination(
-          icon: Icon(Icons.wb_sunny_outlined),
-          label: 'Today',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.check_circle_outline),
-          label: 'Activities',
-        ),
-        NavigationDestination(icon: Icon(Icons.timer_outlined), label: 'Focus'),
-        NavigationDestination(
-          icon: Icon(Icons.group_outlined),
-          label: 'People',
-        ),
-      ],
-    );
-  }
-}
-
-class _SideNavigation extends StatelessWidget {
-  const _SideNavigation();
-
-  @override
-  Widget build(BuildContext context) {
-    return NavigationRail(
-      selectedIndex: 0,
-      labelType: NavigationRailLabelType.all,
-      leading: Padding(
-        padding: const EdgeInsets.all(ActivitySpace.md),
-        child: FilledButton.icon(
-          onPressed: () {},
-          icon: const Icon(Icons.add),
-          label: const Text('Activity'),
-        ),
-      ),
-      destinations: const [
-        NavigationRailDestination(
-          icon: Icon(Icons.wb_sunny_outlined),
-          label: Text('Today'),
-        ),
-        NavigationRailDestination(
-          icon: Icon(Icons.check_circle_outline),
-          label: Text('Activities'),
-        ),
-        NavigationRailDestination(
-          icon: Icon(Icons.timer_outlined),
-          label: Text('Focus'),
-        ),
-        NavigationRailDestination(
-          icon: Icon(Icons.group_outlined),
-          label: Text('People'),
-        ),
-        NavigationRailDestination(
-          icon: Icon(Icons.insights_outlined),
-          label: Text('Insights'),
-        ),
-      ],
     );
   }
 }

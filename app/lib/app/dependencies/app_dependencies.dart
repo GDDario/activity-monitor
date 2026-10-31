@@ -5,11 +5,23 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:app/ui/dashboard/views/dashboard_view.dart';
+import 'package:app/ui/calendar/views/calendar_view.dart';
+import 'package:app/ui/people/views/people_view.dart';
+import 'package:app/ui/profile/views/profile_view.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     routes: [
       GoRoute(path: '/', builder: (context, state) => const DashboardView()),
+      GoRoute(path: '/people', builder: (context, state) => const PeopleView()),
+      GoRoute(
+        path: '/calendar',
+        builder: (context, state) => const CalendarView(),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfileView(),
+      ),
     ],
     errorBuilder: (context, state) => const _UnknownLocationView(),
   );
