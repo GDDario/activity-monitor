@@ -503,8 +503,10 @@ the project affected. A body and footers MAY follow the subject, separated by
 blank lines, when additional context is useful.
 
 When a relevant issue number is known, append it to the subject as `#number`.
-Omit it when there is no associated issue. Indicate breaking changes with `!`
-or a `BREAKING CHANGE:` footer as specified by Conventional Commits.
+The issue number MAY come from the branch name: for example,
+`feature/1-add-profile` indicates issue `#1`. Omit it when there is no
+associated issue. Indicate breaking changes with `!` or a `BREAKING CHANGE:`
+footer as specified by Conventional Commits.
 
 Examples:
 
