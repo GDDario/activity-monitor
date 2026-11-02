@@ -69,6 +69,28 @@ void main() {
     expect(bullet.size, greaterThanOrEqualTo(8));
   });
 
+  testWidgets('calendar legend uses compact readable labels', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(325, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          calendarDataProvider.overrideWith(
+            (ref) async => const CalendarData([], []),
+          ),
+        ],
+        child: MaterialApp(
+          theme: ActivityTheme.light(),
+          home: const CalendarView(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final solo = tester.widget<Text>(find.text('Solo / Habit'));
+    expect(solo.style?.fontSize, 11);
+    expect(solo.style?.color, ActivityColors.mutedInk);
+  });
+
   testWidgets('date indicators distinguish solo and collaborative entries', (
     tester,
   ) async {
@@ -251,7 +273,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.text('All Cadences'),
+      find.text('All Tasks'),
       200,
       scrollable: find
           .descendant(
@@ -261,7 +283,7 @@ void main() {
           .first,
     );
     final selected = tester.widget<FilterChip>(
-      find.widgetWithText(FilterChip, 'All Cadences'),
+      find.widgetWithText(FilterChip, 'All Tasks'),
     );
     final unselected = tester.widget<FilterChip>(
       find.widgetWithText(FilterChip, 'Daily Habits'),
@@ -433,6 +455,17 @@ void main() {
     expect(find.text('Mês'), findsOneWidget);
     expect(find.text('Semana'), findsOneWidget);
     expect(find.text('Hoje'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Todas as tarefas'),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    expect(find.text('Todas as tarefas'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

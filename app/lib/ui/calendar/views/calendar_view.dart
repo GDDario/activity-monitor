@@ -276,7 +276,7 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
                     ),
                   const SizedBox(height: 16),
                   Wrap(
-                    spacing: 16,
+                    spacing: 4,
                     runSpacing: 8,
                     children: [
                       _LegendItem(
@@ -290,6 +290,7 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
                       _LegendItem(
                         indicator: const _CalendarIndicator.cadence(),
                         label: tr('Cadence active', 'Cadência ativa'),
+                        color: ActivityColors.primary,
                       ),
                     ],
                   ),
@@ -313,7 +314,7 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
               child: Row(
                 children: [
                   for (final item in <(CalendarCadence?, String)>[
-                    (null, tr('All Cadences', 'Todas as cadências')),
+                    (null, tr('All Tasks', 'Todas as tarefas')),
                     (
                       CalendarCadence.daily,
                       tr('Daily Habits', 'Hábitos diários'),
@@ -427,17 +428,31 @@ class _CalendarIndicator extends StatelessWidget {
 }
 
 class _LegendItem extends StatelessWidget {
-  const _LegendItem({required this.indicator, required this.label});
+  const _LegendItem({
+    required this.indicator,
+    required this.label,
+    this.color = ActivityColors.mutedInk,
+  });
   final Widget indicator;
   final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
       indicator,
-      const SizedBox(width: 4),
-      Flexible(child: Text(label)),
+      const SizedBox(width: 2),
+      Flexible(
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: color,
+            height: 14 / 11,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
     ],
   );
 }

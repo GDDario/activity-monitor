@@ -76,30 +76,30 @@ Read constitution, architecture, conventions, design reference, ADR 0001 and thi
 ## Task 8: Startup verification and readable calendar indicators
 **What to build:** Verify the application root initializes and seeds a real database before calendar navigation, and use legible circular solo/collaborative indicators with a matching legend.
 **Files likely affected:** app/test/database_startup_test.dart, app/test/calendar_view_test.dart, app/lib/ui/calendar/views/calendar_view.dart.
-**Acceptance criteria:** Startup creates and seeds SQLite without visiting Calendar; indicator shapes, sizes, semantics and legend distinguish categories without relying only on color.
+**Acceptance criteria:** Startup creates and seeds SQLite without visiting Calendar; legible indicators and the legend use the specified colors and shapes, and dates expose their categories to assistive technology.
 **Dependencies:** Tasks 6 and 7.
 - [x] Verify root startup initializes, migrates and seeds a real database without visiting Calendar.
 - [x] Write and run failing widget tests for visible, distinguishable indicators and their legend.
-- [ ] Implement the indicators, rerun tests, and compare against the available design reference. Blocker: the supplied Stitch files are no longer present, and the widget-test screenshot does not render the production fonts or icons.
+- [x] Implement the indicators, rerun tests, and compare against the available design reference. Selected indicators are intentionally larger and spaced apart as requested; recurring entries have an additional icon.
 - [x] Run dart format ., flutter analyze and flutter test; record visual verification limitations.
 
-Outstanding: complete first-use persistence and failure-path verification on supported platforms; test and verify the remaining navigation, localization, keyboard, semantics, large-text, responsive and filter scenarios; finish comparison and alignment with the Stitch reference. The current implementation and automated checks do not establish feature completeness.
+Outstanding: complete first-use persistence and failure-path verification on supported platforms; test and verify the remaining navigation, localization, keyboard, semantics, large-text, responsive and filter scenarios; finish full-screen comparison and alignment with the design reference. The current implementation and automated checks do not establish feature completeness.
 
 ## Assumptions to review
 1. Assumption: Entries are local materialized occurrences; recurrence expansion and synchronization are later work. — Impact: HIGH
-   Assumption answer: Pending
-2. Assumption: One cadence and at most one participant combine with AND; All Cadences resets cadence and tapping an active participant clears it. — Impact: MEDIUM
-   Assumption answer: Pending
+   Assumption answer: Yes.
+2. Assumption: One cadence and at most one participant combine with AND; All Tasks resets cadence and tapping an active participant clears it. — Impact: MEDIUM
+   Assumption answer: Pending for filter combination and reset behavior. The user clarified that task creation is out of scope.
 3. Assumption: Native storage uses an application-support directory and web storage is unavailable. — Impact: HIGH
-   Assumption answer: Pending
+   Assumption answer: Yes.
 4. Assumption: Single local user, with no remote authorization or encryption in this issue. — Impact: HIGH
-   Assumption answer: Pending
+   Assumption answer: Yes.
 5. Assumption: Calendar entries have id, title, local date, cadence and participant links; participants have id and display name. — Impact: MEDIUM
-   Assumption answer: Pending
+   Assumption answer: Yes.
 6. Assumption: Weeks begin Sunday in both supported locales. — Impact: LOW
-   Assumption answer: Pending
+   Assumption answer: Yes.
 7. Assumption: Explicitly requested example entries are installed on existing and new databases, including release builds, and are labeled as examples. — Impact: HIGH
-   Assumption answer: Pending
+   Assumption answer: Yes.
 
 ## Review checkpoint
 Verify assumptions, screen against Stitch, data semantics and every acceptance criterion before handoff.
