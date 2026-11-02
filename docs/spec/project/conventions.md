@@ -489,6 +489,19 @@ Commit messages MUST follow [Conventional Commits 1.0.0](https://www.conventiona
 <type>[optional scope]: <description> [#issue-number]
 ```
 
+Common types include:
+
+* `feat`: a new application or library feature;
+* `fix`: a bug fix;
+* `docs`: documentation changes;
+* `refactor`: code changes that neither add a feature nor fix a bug;
+* `test`: adding or changing tests;
+* `chore`: routine maintenance.
+
+Other appropriate types are allowed. The optional scope identifies the part of
+the project affected. A body and footers MAY follow the subject, separated by
+blank lines, when additional context is useful.
+
 When a relevant issue number is known, append it to the subject as `#number`.
 Omit it when there is no associated issue. Indicate breaking changes with `!`
 or a `BREAKING CHANGE:` footer as specified by Conventional Commits.
