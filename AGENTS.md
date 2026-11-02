@@ -60,12 +60,10 @@ For feature development:
 1. Read the applicable specification and, for UI work, the design reference.
 2. Identify its acceptance criteria.
 3. Plan the implementation.
-4. Write tests first.
-5. Confirm the tests fail for the expected reason.
-6. Implement the minimum required behavior.
-7. Confirm the tests pass.
-8. Refactor.
-9. Validate the implementation against the specification and, for UI work, the design reference.
+4. Before implementation, create or update the feature's `tasks.md` with ordered task headings and a detailed Markdown checklist of actionable, verifiable items under each task, derived from the specification and plan.
+5. Work through the checklist, writing tests first, confirming they fail for the expected reason, implementing the minimum behavior, and refactoring after they pass.
+6. Check off each checklist item in `tasks.md` as soon as it has been verified; leave incomplete or blocked items unchecked and record any blockers alongside them.
+7. Validate the implementation against the specification and, for UI work, the design reference.
 
 For bug fixes:
 
