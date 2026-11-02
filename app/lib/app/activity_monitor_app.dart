@@ -11,6 +11,7 @@ class ActivityMonitorApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(databaseInitializationProvider);
     return ToastificationWrapper(
       child: MaterialApp.router(
         title: 'Activity Monitor',

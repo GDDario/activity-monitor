@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:app/ui/core/theme/activity_theme.dart';
+import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_dimensions.dart';
 import 'package:app/ui/core/widgets/application_shell.dart';
 
 class ScreenTitleBar extends StatelessWidget {

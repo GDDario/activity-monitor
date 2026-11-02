@@ -1,28 +1,6 @@
 import 'package:flutter/material.dart';
 
-abstract final class ActivityColors {
-  static const canvas = Color(0xFFF8FAF6);
-  static const surface = Color(0xFFFFFFFF);
-  static const surfaceMuted = Color(0xFFF3F4F0);
-  static const surfaceStrong = Color(0xFFE7E9E5);
-  static const ink = Color(0xFF191C1A);
-  static const mutedInk = Color(0xFF414943);
-  static const outline = Color(0xFFC1C9C1);
-  static const primary = Color(0xFF15422E);
-  static const primaryContainer = Color(0xFF2E5A44);
-  static const primarySoft = Color(0xFFBDEED0);
-  static const secondary = Color(0xFF994703);
-  static const secondarySoft = Color(0xFFFFDBC9);
-  static const error = Color(0xFFBA1A1A);
-}
-
-abstract final class ActivitySpace {
-  static const xs = 4.0;
-  static const sm = 8.0;
-  static const md = 16.0;
-  static const lg = 24.0;
-  static const xl = 40.0;
-}
+import 'package:app/ui/core/theme/activity_colors.dart';
 
 abstract final class ActivityTheme {
   static ThemeData light() {
@@ -30,11 +8,11 @@ abstract final class ActivityTheme {
       primary: ActivityColors.primary,
       onPrimary: Colors.white,
       primaryContainer: ActivityColors.primaryContainer,
-      onPrimaryContainer: Color(0xFFA0CFB4),
+      onPrimaryContainer: ActivityColors.onPrimaryContainer,
       secondary: ActivityColors.secondary,
       onSecondary: Colors.white,
       secondaryContainer: ActivityColors.secondarySoft,
-      onSecondaryContainer: Color(0xFF6D3000),
+      onSecondaryContainer: ActivityColors.onSecondaryContainer,
       error: ActivityColors.error,
       onError: Colors.white,
       surface: ActivityColors.surface,
@@ -124,9 +102,19 @@ abstract final class ActivityTheme {
           textStyle: textTheme.labelLarge,
         ),
       ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          foregroundColor: ActivityColors.primary,
+          disabledForegroundColor: ActivityColors.mutedInk.withValues(
+            alpha: 0.38,
+          ),
+          iconSize: 20,
+          minimumSize: const Size(48, 48),
+        ),
+      ),
       navigationBarTheme: const NavigationBarThemeData(
         backgroundColor: ActivityColors.surface,
-        indicatorColor: Color(0x1F2E5A44),
+        indicatorColor: ActivityColors.navigationIndicator,
         labelTextStyle: WidgetStatePropertyAll(TextStyle(fontSize: 12)),
       ),
     );

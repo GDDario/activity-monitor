@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:app/ui/core/theme/activity_theme.dart';
+import 'package:app/ui/core/theme/activity_colors.dart';
 
 class SectionHeader extends StatelessWidget {
   const SectionHeader({super.key, required this.title, required this.detail});

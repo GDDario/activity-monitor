@@ -16,6 +16,12 @@ refactor without changing observable behavior.
 
 ## Flutter and Dart workflow
 
+- For UI changes, treat the supplied screen design and its HTML as the visual
+  source of truth. Inspect both before implementation. Compare a rendered
+  screenshot with the reference at a matching viewport, then verify compact
+  layouts and enlarged text. Preserve colors, typography, spacing, alignment,
+  and control states unless the user requests a change. Report any deviations
+  or inability to perform visual verification.
 - Use installed skills under `.agents/skills/` when their task matches.
 - Prefer the Dart MCP server for analysis, symbol information, dependency work,
   formatting, tests, and runtime inspection when it is available.
