@@ -206,8 +206,21 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
                                           ),
                                         ),
                                       ),
-                                      Text(
-                                        [
+                                      if (DateUtils.isSameDay(
+                                            day,
+                                            calendar.selected,
+                                          ) &&
+                                          calendar.matchingEntries.any(
+                                            (entry) => DateUtils.isSameDay(
+                                              entry.date,
+                                              day,
+                                            ),
+                                          ))
+                                        const SizedBox(height: 4),
+                                      Wrap(
+                                        alignment: WrapAlignment.center,
+                                        spacing: 1,
+                                        children: [
                                           if (calendar.matchingEntries.any(
                                             (e) =>
                                                 DateUtils.isSameDay(
@@ -216,7 +229,12 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
                                                 ) &&
                                                 e.participantIds.isEmpty,
                                           ))
-                                            '●',
+                                            _CalendarIndicator.solo(
+                                              selected: DateUtils.isSameDay(
+                                                day,
+                                                calendar.selected,
+                                              ),
+                                            ),
                                           if (calendar.matchingEntries.any(
                                             (e) =>
                                                 DateUtils.isSameDay(
@@ -225,7 +243,12 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
                                                 ) &&
                                                 e.participantIds.isNotEmpty,
                                           ))
-                                            '◆',
+                                            _CalendarIndicator.collaborative(
+                                              selected: DateUtils.isSameDay(
+                                                day,
+                                                calendar.selected,
+                                              ),
+                                            ),
                                           if (calendar.matchingEntries.any(
                                             (e) =>
                                                 DateUtils.isSameDay(
@@ -235,10 +258,13 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
                                                 e.cadence !=
                                                     CalendarCadence.oneTime,
                                           ))
-                                            '↻',
-                                        ].join(),
-                                        style: const TextStyle(fontSize: 9),
-                                        maxLines: 1,
+                                            _CalendarIndicator.cadence(
+                                              selected: DateUtils.isSameDay(
+                                                day,
+                                                calendar.selected,
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -253,12 +279,18 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
                     spacing: 16,
                     runSpacing: 8,
                     children: [
-                      Text('●  ${tr('Solo / Habit', 'Individual / Hábito')}'),
-                      Text(
-                        '◆  ${tr('Collaborative', 'Colaborativo')}',
-                        style: const TextStyle(color: ActivityColors.secondary),
+                      _LegendItem(
+                        indicator: const _CalendarIndicator.solo(),
+                        label: tr('Solo / Habit', 'Individual / Hábito'),
                       ),
-                      Text('↻  ${tr('Cadence active', 'Cadência ativa')}'),
+                      _LegendItem(
+                        indicator: const _CalendarIndicator.collaborative(),
+                        label: tr('Collaborative', 'Colaborativo'),
+                      ),
+                      _LegendItem(
+                        indicator: const _CalendarIndicator.cadence(),
+                        label: tr('Cadence active', 'Cadência ativa'),
+                      ),
                     ],
                   ),
                 ],
@@ -368,6 +400,46 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
       ),
     );
   }
+}
+
+class _CalendarIndicator extends StatelessWidget {
+  const _CalendarIndicator.solo({bool selected = false})
+    : icon = Icons.circle,
+      color = ActivityColors.primaryContainer,
+      size = selected ? 10 : 8;
+  const _CalendarIndicator.collaborative({bool selected = false})
+    : icon = Icons.circle,
+      color = ActivityColors.secondary,
+      size = selected ? 10 : 8;
+  const _CalendarIndicator.cadence({bool selected = false})
+    : icon = Icons.sync,
+      color = ActivityColors.primary,
+      size = selected ? 14 : 12;
+
+  final IconData icon;
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: Icon(icon, size: size, color: color),
+  );
+}
+
+class _LegendItem extends StatelessWidget {
+  const _LegendItem({required this.indicator, required this.label});
+  final Widget indicator;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      indicator,
+      const SizedBox(width: 4),
+      Flexible(child: Text(label)),
+    ],
+  );
 }
 
 class _MonthHeading extends StatelessWidget {

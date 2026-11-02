@@ -53,6 +53,36 @@ Read constitution, architecture, conventions, design reference, ADR 0001 and thi
 - [x] Document development database location and a safe, explicit recreation procedure.
 - [x] Run dart format ., flutter analyze, and flutter test; verify the acceptance criteria with automated tests.
 
+## Task 6: Migration history and one-time calendar seed
+**What to build:** Record versioned migrations and atomically run an injected example seeder for the current local month on fresh and existing version-1 databases.
+**Files likely affected:** app/lib/data/services/database, app/test, app/README.md.
+**Acceptance criteria:** Examples are labeled, include today, different cadences and participants; history prevents repeats; legacy data is preserved; failures roll back seed and history.
+**Dependencies:** Task 5.
+- [x] Write failing tests for fresh and legacy migration history, seeder execution, reopens and next-month behavior.
+- [x] Write failing tests for seeder rollback, UUIDv7 generation, invalid history and date boundaries.
+- [x] Implement transactional migration history and injected calendar seeder; pass the tests.
+- [x] Document example data, migration tracking and recreation behavior.
+- [x] Run dart format ., flutter analyze and flutter test; verify criteria and update this checklist.
+
+## Task 7: Numbered migration files and classes
+**What to build:** Put each registered migration in a separate numbered file and numbered class under the migrations directory, preserving applied migration identifiers.
+**Files likely affected:** app/lib/data/services/database, app/test, docs/spec/project/conventions.md, app/README.md.
+**Acceptance criteria:** Filenames and classes contain matching sortable numbers; existing migration history and seed-once behavior remain compatible.
+**Dependencies:** Task 6.
+- [x] Write a failing test for the numbered registered migrations and their persisted identifiers.
+- [x] Extract numbered migration classes and verify fresh and existing databases and seed-once behavior.
+- [x] Document the naming convention and run dart format ., flutter analyze, and flutter test.
+
+## Task 8: Startup verification and readable calendar indicators
+**What to build:** Verify the application root initializes and seeds a real database before calendar navigation, and use legible circular solo/collaborative indicators with a matching legend.
+**Files likely affected:** app/test/database_startup_test.dart, app/test/calendar_view_test.dart, app/lib/ui/calendar/views/calendar_view.dart.
+**Acceptance criteria:** Startup creates and seeds SQLite without visiting Calendar; indicator shapes, sizes, semantics and legend distinguish categories without relying only on color.
+**Dependencies:** Tasks 6 and 7.
+- [x] Verify root startup initializes, migrates and seeds a real database without visiting Calendar.
+- [x] Write and run failing widget tests for visible, distinguishable indicators and their legend.
+- [ ] Implement the indicators, rerun tests, and compare against the available design reference. Blocker: the supplied Stitch files are no longer present, and the widget-test screenshot does not render the production fonts or icons.
+- [x] Run dart format ., flutter analyze and flutter test; record visual verification limitations.
+
 Outstanding: complete first-use persistence and failure-path verification on supported platforms; test and verify the remaining navigation, localization, keyboard, semantics, large-text, responsive and filter scenarios; finish comparison and alignment with the Stitch reference. The current implementation and automated checks do not establish feature completeness.
 
 ## Assumptions to review
@@ -67,6 +97,8 @@ Outstanding: complete first-use persistence and failure-path verification on sup
 5. Assumption: Calendar entries have id, title, local date, cadence and participant links; participants have id and display name. — Impact: MEDIUM
    Assumption answer: Pending
 6. Assumption: Weeks begin Sunday in both supported locales. — Impact: LOW
+   Assumption answer: Pending
+7. Assumption: Explicitly requested example entries are installed on existing and new databases, including release builds, and are labeled as examples. — Impact: HIGH
    Assumption answer: Pending
 
 ## Review checkpoint

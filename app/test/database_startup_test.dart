@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:app/app/activity_monitor_app.dart';
 import 'package:app/app/dependencies/app_dependencies.dart';
 
@@ -21,6 +22,11 @@ void main() {
       final path = await container.read(databaseInitializationProvider.future);
       expect(path, '${directory.path}/activity_monitor.db');
       expect(await File(path).exists(), isTrue);
+      final db = sqlite3.open(path);
+      addTearDown(db.close);
+      expect(db.select('PRAGMA user_version').single.values.single, 2);
+      expect(db.select('SELECT * FROM migrations').length, 2);
+      expect(db.select('SELECT * FROM calendar_entries'), isNotEmpty);
     },
   );
   testWidgets(

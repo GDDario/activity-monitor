@@ -59,8 +59,178 @@ void main() {
     await tester.pumpWidget(
       const ProviderScope(child: MaterialApp(home: CalendarView())),
     );
-    final legend = tester.widget<Text>(find.text('◆  Collaborative'));
-    expect(legend.style?.color, ActivityColors.secondary);
+    final legend = find
+        .ancestor(of: find.text('Collaborative'), matching: find.byType(Row))
+        .first;
+    final bullet = tester.widget<Icon>(
+      find.descendant(of: legend, matching: find.byIcon(Icons.circle)),
+    );
+    expect(bullet.color, ActivityColors.secondary);
+    expect(bullet.size, greaterThanOrEqualTo(8));
+  });
+
+  testWidgets('date indicators distinguish solo and collaborative entries', (
+    tester,
+  ) async {
+    final today = DateTime.now();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          calendarDataProvider.overrideWith(
+            (ref) async => CalendarData([
+              CalendarEntry(
+                id: 'solo',
+                title: 'Solo',
+                date: today,
+                cadence: CalendarCadence.oneTime,
+                participantIds: const [],
+              ),
+              CalendarEntry(
+                id: 'shared',
+                title: 'Shared',
+                date: today,
+                cadence: CalendarCadence.daily,
+                participantIds: const ['person'],
+              ),
+            ], const []),
+          ),
+        ],
+        child: MaterialApp(
+          theme: ActivityTheme.light(),
+          home: const CalendarView(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final selected = find.byWidgetPredicate(
+      (widget) =>
+          widget is Semantics &&
+          widget.properties.selected == true &&
+          widget.properties.button == true,
+    );
+    final solo = tester.widget<Icon>(
+      find.descendant(
+        of: selected,
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is Icon &&
+              widget.icon == Icons.circle &&
+              widget.color == ActivityColors.primaryContainer,
+        ),
+      ),
+    );
+    final collaborative = tester.widget<Icon>(
+      find.descendant(
+        of: selected,
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is Icon &&
+              widget.icon == Icons.circle &&
+              widget.color == ActivityColors.secondary,
+        ),
+      ),
+    );
+    final cadence = tester.widget<Icon>(
+      find.descendant(of: selected, matching: find.byIcon(Icons.sync)),
+    );
+    expect(solo.size, greaterThanOrEqualTo(8));
+    expect(collaborative.size, greaterThanOrEqualTo(8));
+    expect(collaborative.size, solo.size);
+    expect(cadence.size, greaterThanOrEqualTo(10));
+    expect(solo.color, ActivityColors.primaryContainer);
+    expect(collaborative.color, ActivityColors.secondary);
+    final semantics = tester.widget<Semantics>(selected);
+    expect(semantics.properties.label, contains('Solo / Habit'));
+    expect(semantics.properties.label, contains('Collaborative'));
+    expect(semantics.properties.label, contains('Cadence active'));
+  });
+
+  testWidgets('selected date indicators are larger and spaced from the date', (
+    tester,
+  ) async {
+    final today = DateTime.now();
+    final otherDay = DateTime(today.year, today.month, today.day == 1 ? 2 : 1);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          calendarDataProvider.overrideWith(
+            (ref) async => CalendarData([
+              CalendarEntry(
+                id: 'a',
+                title: 'Selected',
+                date: today,
+                cadence: CalendarCadence.daily,
+                participantIds: const [],
+              ),
+              CalendarEntry(
+                id: 'b',
+                title: 'Other',
+                date: otherDay,
+                cadence: CalendarCadence.daily,
+                participantIds: const [],
+              ),
+            ], const []),
+          ),
+        ],
+        child: MaterialApp(
+          theme: ActivityTheme.light(),
+          home: const CalendarView(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final selected = find.byWidgetPredicate(
+      (widget) =>
+          widget is Semantics &&
+          widget.properties.selected == true &&
+          widget.properties.button == true,
+    );
+    final other = find.byWidgetPredicate(
+      (widget) =>
+          widget is Semantics &&
+          widget.properties.button == true &&
+          widget.properties.selected == false &&
+          (widget.properties.label?.contains('Solo / Habit') ?? false),
+    );
+    final selectedIcon = find.descendant(
+      of: selected,
+      matching: find.byIcon(Icons.circle),
+    );
+    final otherIcon = find.descendant(
+      of: other,
+      matching: find.byIcon(Icons.circle),
+    );
+    expect(
+      tester.widget<Icon>(selectedIcon).size!,
+      greaterThan(tester.widget<Icon>(otherIcon).size!),
+    );
+    expect(
+      tester
+          .widget<Icon>(
+            find.descendant(of: selected, matching: find.byIcon(Icons.sync)),
+          )
+          .size!,
+      greaterThan(
+        tester
+            .widget<Icon>(
+              find.descendant(of: other, matching: find.byIcon(Icons.sync)),
+            )
+            .size!,
+      ),
+    );
+    final dateCircle = find.descendant(
+      of: selected,
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Container &&
+            widget.decoration is BoxDecoration &&
+            (widget.decoration! as BoxDecoration).shape == BoxShape.circle,
+      ),
+    );
+    expect(
+      tester.getTopLeft(selectedIcon).dy - tester.getBottomLeft(dateCircle).dy,
+      greaterThanOrEqualTo(2),
+    );
   });
 
   testWidgets('uses contrasting selected and muted unselected filter colors', (
@@ -292,6 +462,49 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Month'), findsOneWidget);
     expect(find.byTooltip('Next month'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('date indicators fit compact screens with enlarged text', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final today = DateTime.now();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          calendarDataProvider.overrideWith(
+            (ref) async => CalendarData([
+              CalendarEntry(
+                id: 'solo',
+                title: 'Solo',
+                date: today,
+                cadence: CalendarCadence.daily,
+                participantIds: const [],
+              ),
+              CalendarEntry(
+                id: 'shared',
+                title: 'Shared',
+                date: today,
+                cadence: CalendarCadence.weekly,
+                participantIds: const ['p'],
+              ),
+            ], const []),
+          ),
+        ],
+        child: MaterialApp(
+          theme: ActivityTheme.light(),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: const TextScaler.linear(2)),
+            child: child!,
+          ),
+          home: const CalendarView(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
 }

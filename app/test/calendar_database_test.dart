@@ -7,12 +7,14 @@ void main() {
     final db = sqlite3.openInMemory();
     addTearDown(db.close);
     migrateDatabase(db);
-    expect(db.select('PRAGMA user_version').single.values.single, 1);
+    expect(db.select('PRAGMA user_version').single.values.single, 2);
     db.execute(
       "INSERT INTO calendar_entries VALUES ('id', 'Walk', '2024-02-29', 'daily')",
     );
     expect(
-      db.select('SELECT title FROM calendar_entries').single['title'],
+      db
+          .select("SELECT title FROM calendar_entries WHERE id = 'id'")
+          .single['title'],
       'Walk',
     );
     expect(
@@ -28,6 +30,9 @@ void main() {
       throwsA(isA<SqliteException>()),
     );
     migrateDatabase(db);
-    expect(db.select('SELECT * FROM calendar_entries').length, 1);
+    expect(
+      db.select("SELECT * FROM calendar_entries WHERE id = 'id'").length,
+      1,
+    );
   });
 }

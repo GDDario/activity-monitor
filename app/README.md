@@ -26,11 +26,24 @@ the calendar reports that its data is unavailable; it never automatically
 deletes the database or retries until the app restarts.
 
 Migrations are registered in `lib/data/services/database/migrations.dart` and
-tracked using SQLite `user_version`. Add a new consecutive migration instead
-of editing an already-released migration. The migration transaction rolls back
-if a step fails. Plan a data transformation and backup before any destructive
-schema change; a rollback of the transaction is not a downgrade of a committed
-database.
+recorded by name and batch in the `migrations` table. SQLite `user_version` is
+kept in sync for compatibility; existing version-1 databases are recorded in
+the new history before pending migrations run. Add a new consecutive migration
+in its own file under `lib/data/services/database/migrations/`, using matching
+zero-padded numbers in the filename and class name, such as
+`migration_0001_create_calendar_tables.dart` and
+`Migration0001CreateCalendarTables`. Register it in numeric order. Do not edit
+an already-released migration or rename its recorded identifier. A migration can accept a
+seeder callback, which runs after its table operations in the same transaction.
+If either fails, schema, seed data, and migration history roll back together.
+Plan a data transformation and backup before any destructive schema change; a
+transaction rollback is not a downgrade of a committed database.
+
+Migration 2 inserts calendar examples, labeled `Example:`, in the local month
+when it first runs. It applies to both existing and fresh databases, including
+release builds. The examples include today, multiple cadences, and a participant.
+The migration runs once per database: opening the app in a later month does not
+regenerate the examples. Recreating the database runs it again for that month.
 
 To recreate a development database, **stop the app first** and move
 `activity_monitor.db` and any `activity_monitor.db-wal` and

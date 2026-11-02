@@ -307,6 +307,18 @@ Services SHOULD remain focused on communication with a specific external source.
 
 ---
 
+## 12.1 Database migration files and classes
+
+Each database migration MUST have a separate file under
+`app/lib/data/services/database/migrations/`. Name files
+`migration_NNNN_description.dart` and classes `MigrationNNNNDescription`,
+where `NNNN` is the same zero-padded, consecutive migration number in both
+names. Register migrations in numeric order. Applied migration names and
+versions are persistent identifiers and MUST NOT be renamed or reused;
+schema changes and optional injected seeders MUST run through a new migration.
+
+---
+
 ## 13. Asynchronous Code
 
 Use `async` and `await` for asynchronous operations.

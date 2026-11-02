@@ -10,6 +10,10 @@ Startup eagerly starts an injected database initialization provider at the app c
 
 Keep version 1 schema unchanged for existing installations. Register migrations in ascending version order, acquire a write transaction before checking user_version, reject newer schemas, and roll back schema and version together on failure. Enable foreign keys for every connection. Close connections after initialization or reads. Development recreation is manual and explicitly destructive, performed only while the app is stopped; never reset automatically on migration failure.
 
+Create a Laravel-style migrations table with a unique migration name and batch number; reconcile legacy user_version 1 by recording the already-applied first migration before running migration 2. Keep user_version synchronized for compatibility and reject inconsistent histories. Migration 2 invokes an injected calendar seeder inside the migration transaction. Inject the clock and UUIDv7 generator so tests can fix dates and IDs; seed clearly labeled examples for the local month, including today, solo and collaborative entries with daily, weekly and one-time cadence. Examples are persisted once and are not regenerated in later months. [ASSUMPTION: Explicitly requested examples are installed on existing and new databases, including release builds, and are labeled as examples.]
+
+Each migration lives in its own file in `app/lib/data/services/database/migrations/`, with the same zero-padded number in its filename and class name as specified in the project conventions. Keep the stored migration identifiers and SQL unchanged when reorganizing existing migrations.
+
 ## Application contracts
 - CalendarRepository.load(): returns entries and participants or an explicit unavailable result; it is the source of truth.
 - SQLite service opens the local database, enables foreign keys, migrates and reads entries and participants; errors are translated to presentation-safe unavailable state.

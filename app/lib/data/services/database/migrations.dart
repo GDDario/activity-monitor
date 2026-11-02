@@ -1,18 +1,27 @@
 import 'package:sqlite3/sqlite3.dart';
+import 'package:uuid/uuid.dart';
 
-class DatabaseMigration {
-  const DatabaseMigration(this.version, this.apply);
+import 'package:app/data/services/database/calendar_seeder.dart';
+import 'package:app/data/services/database/database_migration.dart';
+import 'package:app/data/services/database/migrations/migration_0001_create_calendar_tables.dart';
+import 'package:app/data/services/database/migrations/migration_0002_seed_calendar_examples.dart';
 
-  final int version;
-  final void Function(Database database) apply;
-}
+export 'package:app/data/services/database/database_migration.dart';
 
-final databaseMigrations = <DatabaseMigration>[
-  DatabaseMigration(1, _createCalendarTables),
-];
-
-void migrateDatabase(Database db, {List<DatabaseMigration>? migrations}) {
-  final steps = migrations ?? databaseMigrations;
+void migrateDatabase(
+  Database db, {
+  List<DatabaseMigration>? migrations,
+  CalendarSeeder? calendarSeeder,
+}) {
+  final seeder =
+      calendarSeeder ??
+      CalendarSeeder(now: DateTime.now, newId: const Uuid().v7);
+  final steps =
+      migrations ??
+      <DatabaseMigration>[
+        const Migration0001CreateCalendarTables(),
+        Migration0002SeedCalendarExamples(seeder),
+      ];
   for (var i = 0; i < steps.length; i++) {
     if (steps[i].version != i + 1) {
       throw StateError(
@@ -28,8 +37,48 @@ void migrateDatabase(Database db, {List<DatabaseMigration>? migrations}) {
     if (current > steps.length) {
       throw StateError('Unsupported database version');
     }
+    final hasHistory = db
+        .select(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'migrations'",
+        )
+        .isNotEmpty;
+    if (!hasHistory && current > 1) {
+      throw StateError('Database migration history is missing');
+    }
+    if (!hasHistory) {
+      db.execute(
+        'CREATE TABLE migrations (id INTEGER PRIMARY KEY AUTOINCREMENT, migration TEXT NOT NULL UNIQUE, batch INTEGER NOT NULL CHECK(batch > 0))',
+      );
+      if (current == 1) {
+        db.execute('INSERT INTO migrations (migration, batch) VALUES (?, 1)', [
+          steps.first.migrationName,
+        ]);
+      }
+    }
+    final history = db.select('SELECT migration FROM migrations ORDER BY id');
+    if (history.length != current) {
+      throw StateError('Database migration history does not match version');
+    }
+    for (var i = 0; i < current; i++) {
+      if (history[i]['migration'] != steps[i].migrationName) {
+        throw StateError('Database migration history does not match version');
+      }
+    }
+    final batch =
+        (db
+                .select(
+                  'SELECT COALESCE(MAX(batch), 0) AS last_batch FROM migrations',
+                )
+                .single['last_batch']
+            as int) +
+        1;
     for (final step in steps.skip(current)) {
       step.apply(db);
+      step.seeder?.call(db);
+      db.execute('INSERT INTO migrations (migration, batch) VALUES (?, ?)', [
+        step.migrationName,
+        batch,
+      ]);
       db.execute('PRAGMA user_version = ${step.version}');
     }
     db.execute('COMMIT');
@@ -37,16 +86,4 @@ void migrateDatabase(Database db, {List<DatabaseMigration>? migrations}) {
     db.execute('ROLLBACK');
     rethrow;
   }
-}
-
-void _createCalendarTables(Database db) {
-  db.execute(
-    'CREATE TABLE calendar_entries (id TEXT PRIMARY KEY NOT NULL, title TEXT NOT NULL CHECK(length(trim(title)) > 0), date TEXT NOT NULL CHECK(length(date) = 10), cadence TEXT NOT NULL CHECK(cadence IN (\'daily\', \'weekly\', \'one-time\')))',
-  );
-  db.execute(
-    'CREATE TABLE calendar_participants (id TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL CHECK(length(trim(name)) > 0))',
-  );
-  db.execute(
-    'CREATE TABLE calendar_entry_participants (entry_id TEXT NOT NULL REFERENCES calendar_entries(id) ON DELETE CASCADE, participant_id TEXT NOT NULL REFERENCES calendar_participants(id) ON DELETE CASCADE, PRIMARY KEY(entry_id, participant_id))',
-  );
 }

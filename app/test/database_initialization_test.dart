@@ -17,7 +17,7 @@ void main() {
       final path = '${directory.path}/activity_monitor.db';
       initializeDatabaseAtPath(path);
       final first = sqlite3.open(path);
-      expect(first.select('PRAGMA user_version').single.values.single, 1);
+      expect(first.select('PRAGMA user_version').single.values.single, 2);
       first.execute(
         "INSERT INTO calendar_entries VALUES ('id', 'Walk', '2024-02-29', 'daily')",
       );
@@ -26,7 +26,9 @@ void main() {
       final reopened = sqlite3.open(path);
       addTearDown(reopened.close);
       expect(
-        reopened.select('SELECT title FROM calendar_entries').single['title'],
+        reopened
+            .select("SELECT title FROM calendar_entries WHERE id = 'id'")
+            .single['title'],
         'Walk',
       );
     },

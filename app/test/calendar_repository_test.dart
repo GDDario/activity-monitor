@@ -16,8 +16,14 @@ void main() {
     db.execute("INSERT INTO calendar_entry_participants VALUES ('e', 'p')");
     final result = await CalendarRepository(CalendarDatabase(() async => db))
         .load();
-    expect(result.entries.single.title, 'Walk');
-    expect(result.entries.single.participantIds, ['p']);
-    expect(result.participants.single.name, 'Lee');
+    final entry = result.entries.singleWhere((entry) => entry.id == 'e');
+    expect(entry.title, 'Walk');
+    expect(entry.participantIds, ['p']);
+    expect(
+      result.participants
+          .singleWhere((participant) => participant.id == 'p')
+          .name,
+      'Lee',
+    );
   });
 }
