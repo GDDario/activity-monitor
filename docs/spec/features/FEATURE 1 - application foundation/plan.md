@@ -9,23 +9,22 @@ exists. This Feature 1 specification is the source of truth; implementation
 MUST satisfy it or the specification MUST be updated first.
 
 The application composition boundary under `app/lib/app/` owns router,
-localization, feedback host, and dependency construction. Extend the existing
-`DashboardView` with a responsive application shell that routes to Today,
-People, Calendar, and Profile. Preserve the current Today dashboard. Put shared
+localization, feedback host, and dependency construction. Retain the existing `ApplicationShell` and destination Views, improving them
+as needed to satisfy the specification and route to Today, People, Calendar,
+and Profile. Preserve the current Today dashboard. Put shared
 theme, navigation, title-area, and empty-state widgets in `app/lib/ui/core/`;
 put base destination Views in their respective `app/lib/ui/` directories.
 
 No ViewModel, Use Case, Repository, Service, data model, persistence, or schema
-migration is needed for this presentation-only foundation. Future data-backed
-work MUST follow View → ViewModel → Use Case → Repository → Service with
-unidirectional data flow and an ADR before SQLite is introduced.
+migration is needed for this presentation-only foundation. Future data-backed work follows the architecture’s dependency boundaries and
+unidirectional data flow; optional layers may be skipped as permitted there.
+A future feature will introduce SQLite through an approved ADR before durable
+user data is created. Data models will be defined by the features that need them.
 
 ## Data model changes
 
 No domain models, persistent data, migrations, or entity identifiers are added.
-The existing Today preview remains presentation-only. `[ASSUMPTION: a future
-feature will introduce SQLite through an approved ADR before any durable user
-data is created.]`
+The existing Today preview remains presentation-only.
 
 ## Application contracts
 
@@ -34,7 +33,7 @@ data is created.]`
 - Application feedback host provides one accessible, presentation-safe location
   for transient messages.
 - Localization provides United States English and Brazilian Portuguese resources
-  with a supported-locale fallback.
+  for foundation-owned text, with United States English as the fallback.
 - Title-area calendar access routes to Calendar; notification access is visibly
   unavailable or produces a safe unavailable message until a notification
   feature defines its behavior; profile image or abbreviation access routes to
@@ -50,15 +49,19 @@ data is created.]`
 - Apply the Mindful Editorial Productivity reference: warm neutral surfaces,
   forest-green emphasis, calm editorial hierarchy, soft geometry, visible focus
   states, and restrained feedback.
-- `[ASSUMPTION: existing Riverpod composition remains sufficient and may evolve
-  as application behavior is added.]`
+- Existing Riverpod composition is sufficient and may evolve as application
+  behavior is added.
 
 ## Testing strategy
 
-Follow Red-Green-Refactor: add one focused failing behavior test, implement the
-minimum passing code, then refactor without observable change. Widget-test the
+First inspect existing code and tests and verify the current baseline. For each
+unmet behavior, follow Red-Green-Refactor: add a focused failing behavior test,
+implement the minimum passing code, then refactor without observable change.
+Do not require an existing, already passing behavior to fail artificially. Widget-test the
 theme, accessible labels, routed screens, active navigation, title area,
-compact/wide behavior, empty-state descriptions, and unknown-route fallback.
+compact/wide behavior, enlarged text, empty-state descriptions, both app
+locales and fallback, notification feedback, and unknown-route fallback. Check
+keyboard focus and visual alignment manually where widget tests are insufficient.
 No repository, service, migration, or domain tests are required because this
 feature owns no data behavior.
 
@@ -70,5 +73,5 @@ All existing tests, acceptance criteria, and documentation MUST remain aligned.
 Do not include real profile images, personal details, remote resources, secrets,
 or telemetry in the preview or empty Views. User-facing failure messages MUST
 not expose technical details. Keep responsive layouts bounded and avoid
-unnecessary data loading. `[ASSUMPTION: the foundation has no authentication,
-authorization, synchronization, or remote-data boundary.]`
+unnecessary data loading. The foundation has no authentication, authorization,
+synchronization, or remote-data boundary.

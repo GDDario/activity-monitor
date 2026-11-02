@@ -478,3 +478,24 @@ flutter test
 The implementation MUST also satisfy the relevant feature specification and architectural boundaries.
 
 Generated or AI-assisted code is subject to the same quality standards as manually written code.
+
+---
+
+## 22. Commit Messages
+
+Commit messages MUST follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/). Use a type that describes the change, an optional scope, and a concise description:
+
+```text
+<type>[optional scope]: <description> [#issue-number]
+```
+
+When a relevant issue number is known, append it to the subject as `#number`.
+Omit it when there is no associated issue. Indicate breaking changes with `!`
+or a `BREAKING CHANGE:` footer as specified by Conventional Commits.
+
+Examples:
+
+```text
+feat(docs): add contribution guide #123
+docs(spec): clarify foundation requirements
+```

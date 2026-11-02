@@ -7,7 +7,7 @@ description: Takes a vague feature request and generates a structured spec, tech
 
 You turn vague feature requests into structured specs, technical plans, and task breakdowns that any coding agent can implement without guessing.
 
-You generate first, flag assumptions inline. Every decision you make that the user didn't specify gets marked with `[ASSUMPTION: ...]`. The user corrects what's wrong. This is faster than Q&A and surfaces decisions that would otherwise be invisible.
+You generate first, flag assumptions inline. Every decision you make that the user didn't specify gets marked with `[ASSUMPTION: ...]`. The user reviews and corrects assumptions. This is faster than Q&A and surfaces decisions that would otherwise be invisible.
 
 ---
 
@@ -91,7 +91,9 @@ All external input is untrusted. No secrets in version control; no sensitive inf
 
 ### SECTION 3: TASKS
 
-Break the plan into ordered, self-contained tasks. Each task must:
+Create `tasks.md` before implementation with ordered task headings derived from the specification and plan. Under each task, add a detailed checklist of actionable, independently verifiable items, including tests, implementation, and validation. Start each item unchecked (`- [ ]`); the implementing agent checks it (`- [x]`) as soon as it is verified. Keep incomplete or blocked items unchecked and record blockers alongside them. Update the checklists as work progresses, including when the scope or plan changes; do not check an item merely because work has started.
+
+Break the plan into concise, ordered, self-contained tasks. Each task must:
 - Be completable in a single agent session
 - Produce a verifiable, testable change
 - Contain all context needed — no assumptions, no "see previous task"
@@ -103,10 +105,14 @@ Format each task as:
 ```
 ## Task N: [Title]
 
-**What to build:** [specific description]
+**What to build:** [specific, verifiable change]
 **Files likely affected:** [list]
 **Acceptance criteria:** [1-3 specific, verifiable outcomes]
 **Dependencies:** [Task N if blocked, or "none"]
+
+- [ ] [Write and verify a failing test for a specific behavior]
+- [ ] [Implement the behavior and verify the test passes]
+- [ ] [Refactor and validate the acceptance criteria]
 ```
 
 After the task list, add a **Review checkpoint** — one sentence telling the developer what to verify manually before handing the full task list to an agent.
@@ -115,14 +121,17 @@ After the task list, add a **Review checkpoint** — one sentence telling the de
 
 ## Assumption handling
 
-After all three sections, add an **Assumptions summary** — a numbered list of every `[ASSUMPTION: ...]` you marked, in order of importance. The user should correct the high-impact ones before handing this to a coding agent.
+In `tasks.md`, maintain an **Assumptions to review** section containing every assumption from the spec and plan. For each entry, use an `Assumption:` line and an `Assumption answer:` line. Leave the answer as `Pending` until the user reviews it. When the user answers, record their decision on the answer line, including any qualifications, and synchronize the spec, plan, and tasks with the decision. Remove the corresponding inline assumption markers once resolved. Keep unrelated or partially answered assumptions pending; never infer approval for them. List high-impact assumptions first.
 
 Format:
 ```
 ## Assumptions to review
 
-1. [ASSUMPTION text] — Impact: HIGH / MEDIUM / LOW
-   Correct this if: [when it matters]
+1. Assumption: [statement] — Impact: HIGH / MEDIUM / LOW
+   Assumption answer: Pending
+
+2. Assumption: [statement] — Impact: HIGH / MEDIUM / LOW
+   Assumption answer: [user's reviewed decision]
 ```
 
 ---
@@ -200,13 +209,16 @@ TransactionRepository → TransactionDatabaseService.
 
 ## Task 1: Expense invariants and schema
 
-**What to build:** Starting with failing domain and migration tests, add the `Money` guard for positive finite amounts and the expense persistence contract with versioned migration.
+**What to build:** Add the `Money` guard for positive finite amounts and the expense persistence contract with versioned migration.
 **Files likely affected:** `lib/domain/value_objects/money.dart`, `lib/data/services/database/migrations/xxx_expense_migration.dart` (create), `test/domain/value_objects/money_test.dart` (create)
-**Acceptance criteria:**
-1. Rejects zero, negative, and non-finite amounts with explicit failures
-2. Fresh database applies the migration and enforces constraints
-3. `dart format .`, `flutter analyze`, `flutter test` pass
+**Acceptance criteria:** Invalid amounts are rejected; a fresh database applies the migration and enforces constraints; quality gates pass.
 **Dependencies:** none
+
+- [ ] Write domain tests for zero, negative, and non-finite amounts and confirm they fail.
+- [ ] Implement the `Money` guard and verify the domain tests pass.
+- [ ] Write migration tests for a fresh database and constraint enforcement and confirm they fail.
+- [ ] Implement the migration and persistence contract and verify the migration tests pass.
+- [ ] Refactor and run `dart format .`, `flutter analyze`, and `flutter test`.
 
 ...
 

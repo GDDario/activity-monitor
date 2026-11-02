@@ -21,8 +21,9 @@ screens.
 2. `REQ-FOUND-002`: The application MUST provide application-wide navigation,
    localization, presentation feedback, and replaceable dependency composition.
 3. `REQ-FOUND-003`: The application MUST support United States English and
-   Brazilian Portuguese. `[ASSUMPTION: these are the only initial product
-   locales.]`
+   Brazilian Portuguese, including foundation-owned navigation labels, screen
+   descriptions, title-area controls, and feedback. These are the only initial
+   product locales.
 4. `REQ-UI-001`: The application MUST use a consistent visual language for
    color, typography, spacing, surfaces, actions, and status.
 5. `REQ-UI-002`: Interactive controls MUST have accessible labels, visible
@@ -32,10 +33,11 @@ screens.
    primary destination.
 7. `REQ-NAV-002`: Every primary destination MUST provide a common title area
    with the user's profile image or name abbreviation, a concise screen-specific
-   phrase, calendar access, and notifications access. `[ASSUMPTION:
-   notifications are a non-functional entry point until a notifications feature
-   is specified.]`
-   Selecting the profile image or abbreviation MUST open Profile.
+   phrase, calendar access, and notifications access. Notifications are a
+   non-functional entry point until a notifications feature is specified.
+   Selecting the profile image, abbreviation, or neutral avatar MUST open Profile.
+   Calendar access MUST open Calendar. Notifications access MUST either be
+   visibly unavailable or display a safe unavailable message.
 8. `REQ-NAV-003`: The Today destination MUST retain its existing dashboard
    presentation while base routing is introduced.
 9. `REQ-NAV-004`: People, Calendar, and Profile MUST initially provide a blank,
@@ -58,13 +60,14 @@ screens.
 ## Edge cases
 
 - An unknown in-app location MUST render a presentation-safe fallback.
-- An unsupported device locale MUST fall back to a supported locale.
-  `[ASSUMPTION: the framework-standard fallback is sufficient.]`
+- An unsupported device locale MUST fall back to United States English.
 - On narrow windows, navigation remains reachable; on wide windows, reading
   content remains bounded; increased text scale wraps metadata rather than
   clipping it.
-- If no usable profile image or name abbreviation exists, the title area shows
-  a neutral avatar. `[ASSUMPTION: profile name is optional during setup.]`
+- A profile name is required for setup and app usage. Setup and profile data
+  behavior belong to a future feature; this presentation-only foundation does
+  not implement or enforce them. If no usable profile image or abbreviation
+  is available to the title area, it shows a neutral avatar.
 
 ## Acceptance criteria
 
@@ -79,10 +82,10 @@ Then the selected destination is displayed and primary navigation identifies it 
 
 Given any primary destination is displayed
 When the user views its title area
-Then they see a profile image or abbreviation, a screen-specific phrase, calendar access, and notifications access
+Then they see a profile image, abbreviation, or neutral avatar, a screen-specific phrase, calendar access, and notifications access
 
 Given a primary destination title area is displayed
-When the user selects the profile image or abbreviation
+When the user selects the profile image, abbreviation, or neutral avatar
 Then Profile is displayed
 
 Given base routing is introduced
@@ -92,4 +95,24 @@ Then the existing dashboard presentation remains visible
 Given the user opens People, Calendar, or Profile
 When no feature-owned data behavior has been implemented
 Then the destination shows a short description of its intended purpose
+
+Given the device uses Brazilian Portuguese
+When a foundation destination or its controls are displayed
+Then foundation-owned labels, descriptions, and feedback are in Brazilian Portuguese
+
+Given the device locale is unsupported
+When the application starts
+Then foundation-owned text falls back to United States English
+
+Given a primary destination title area is displayed
+When the user selects Calendar or Notifications
+Then Calendar opens, or Notifications is visibly unavailable or displays a safe unavailable message, respectively
+
+Given an unknown location is requested
+When the router resolves it
+Then a presentation-safe fallback is displayed
+
+Given a compact or wide window with increased text scale
+When a primary destination is displayed
+Then essential content and navigation remain accessible without clipping
 ```
