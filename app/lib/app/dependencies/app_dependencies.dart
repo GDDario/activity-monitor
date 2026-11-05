@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -15,6 +16,7 @@ import 'package:app/data/repositories/calendar_repository.dart';
 import 'package:app/domain/models/calendar_data.dart';
 import 'package:app/ui/dashboard/views/dashboard_view.dart';
 import 'package:app/ui/calendar/views/calendar_view.dart';
+import 'package:app/ui/calendar/view_models/calendar_view_model.dart';
 import 'package:app/ui/people/views/people_view.dart';
 import 'package:app/ui/profile/views/profile_view.dart';
 
@@ -69,6 +71,16 @@ final databaseInitializationProvider = FutureProvider<String>((ref) async {
 final calendarDataProvider = FutureProvider<CalendarData>((ref) async {
   final path = await ref.watch(databaseInitializationProvider.future);
   return compute(_readCalendar, path);
+});
+
+final calendarViewModelProvider = Provider.autoDispose<CalendarViewModel>((
+  ref,
+) {
+  final future = ref.read(calendarDataProvider.future);
+  final model = CalendarViewModel(DateTime.now(), () => future);
+  ref.onDispose(model.dispose);
+  unawaited(model.load());
+  return model;
 });
 
 Future<CalendarData> _readCalendar(String path) async {

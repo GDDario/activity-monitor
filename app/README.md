@@ -45,6 +45,12 @@ release builds. The examples include today, multiple cadences, and a participant
 The migration runs once per database: opening the app in a later month does not
 regenerate the examples. Recreating the database runs it again for that month.
 
+Migration 3 adds a constrained completion flag. Existing entries and new
+entries without an explicit status are pending. The calendar counts pending and
+done entries for the selected day and active filters; changing completion status
+is outside the calendar feature. Downgrading requires a backup and table rebuild
+and would discard stored completion status.
+
 To recreate a development database, **stop the app first** and move
 `activity_monitor.db` and any `activity_monitor.db-wal` and
 `activity_monitor.db-shm` files out of the application-support directory to a

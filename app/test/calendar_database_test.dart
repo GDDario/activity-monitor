@@ -7,9 +7,9 @@ void main() {
     final db = sqlite3.openInMemory();
     addTearDown(db.close);
     migrateDatabase(db);
-    expect(db.select('PRAGMA user_version').single.values.single, 2);
+    expect(db.select('PRAGMA user_version').single.values.single, 3);
     db.execute(
-      "INSERT INTO calendar_entries VALUES ('id', 'Walk', '2024-02-29', 'daily')",
+      "INSERT INTO calendar_entries (id, title, date, cadence) VALUES ('id', 'Walk', '2024-02-29', 'daily')",
     );
     expect(
       db
@@ -19,7 +19,7 @@ void main() {
     );
     expect(
       () => db.execute(
-        "INSERT INTO calendar_entries VALUES ('bad', 'X', '2024-01-01', 'invalid')",
+        "INSERT INTO calendar_entries (id, title, date, cadence) VALUES ('bad', 'X', '2024-01-01', 'invalid')",
       ),
       throwsA(isA<SqliteException>()),
     );

@@ -15,6 +15,16 @@ enum AppDestination {
   final String path;
   final String label;
   final IconData icon;
+
+  String localizedLabel(BuildContext context) {
+    if (Localizations.localeOf(context).languageCode != 'pt') return label;
+    return switch (this) {
+      AppDestination.today => 'Hoje',
+      AppDestination.people => 'Pessoas',
+      AppDestination.calendar => 'Calendário',
+      AppDestination.profile => 'Perfil',
+    };
+  }
 }
 
 class ApplicationShell extends StatelessWidget {
@@ -73,7 +83,7 @@ class _BottomNavigation extends StatelessWidget {
         for (final destination in AppDestination.values)
           NavigationDestination(
             icon: Icon(destination.icon),
-            label: destination.label,
+            label: destination.localizedLabel(context),
           ),
       ],
     );
@@ -102,7 +112,7 @@ class _SideNavigation extends StatelessWidget {
         for (final destination in AppDestination.values)
           NavigationRailDestination(
             icon: Icon(destination.icon),
-            label: Text(destination.label),
+            label: Text(destination.localizedLabel(context)),
           ),
       ],
     );

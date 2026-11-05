@@ -7,12 +7,14 @@ class CalendarEntry {
     required this.date,
     required this.cadence,
     required this.participantIds,
+    this.isDone = false,
   });
   final String id;
   final String title;
   final DateTime date;
   final CalendarCadence cadence;
   final List<String> participantIds;
+  final bool isDone;
 }
 
 class CalendarParticipant {

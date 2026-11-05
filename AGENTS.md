@@ -5,6 +5,11 @@ individually or with companions.
 
 This project follows Spec-Driven Development (SDD).
 
+## Temporary Files
+
+Place project-related temporary files, including screenshots and working
+artifacts, in the repository's `.scratches/` directory so they are easy to find.
+
 ## Technologies
 
 - Dart

@@ -24,8 +24,8 @@ void main() {
       expect(await File(path).exists(), isTrue);
       final db = sqlite3.open(path);
       addTearDown(db.close);
-      expect(db.select('PRAGMA user_version').single.values.single, 2);
-      expect(db.select('SELECT * FROM migrations').length, 2);
+      expect(db.select('PRAGMA user_version').single.values.single, 3);
+      expect(db.select('SELECT * FROM migrations').length, 3);
       expect(db.select('SELECT * FROM calendar_entries'), isNotEmpty);
     },
   );

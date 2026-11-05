@@ -10,7 +10,7 @@ void main() {
     addTearDown(db.close);
     migrateDatabase(db);
     db.execute(
-      "INSERT INTO calendar_entries VALUES ('e', 'Walk', '2024-02-29', 'daily')",
+      "INSERT INTO calendar_entries (id, title, date, cadence) VALUES ('e', 'Walk', '2024-02-29', 'daily')",
     );
     db.execute("INSERT INTO calendar_participants VALUES ('p', 'Lee')");
     db.execute("INSERT INTO calendar_entry_participants VALUES ('e', 'p')");

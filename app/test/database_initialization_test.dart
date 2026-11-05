@@ -17,9 +17,9 @@ void main() {
       final path = '${directory.path}/activity_monitor.db';
       initializeDatabaseAtPath(path);
       final first = sqlite3.open(path);
-      expect(first.select('PRAGMA user_version').single.values.single, 2);
+      expect(first.select('PRAGMA user_version').single.values.single, 3);
       first.execute(
-        "INSERT INTO calendar_entries VALUES ('id', 'Walk', '2024-02-29', 'daily')",
+        "INSERT INTO calendar_entries (id, title, date, cadence) VALUES ('id', 'Walk', '2024-02-29', 'daily')",
       );
       first.close();
       initializeDatabaseAtPath(path);
@@ -43,6 +43,30 @@ void main() {
     expect(() => migrateDatabase(db), throwsStateError);
     expect(db.select('PRAGMA user_version').single.values.single, 99);
     expect(db.select('SELECT value FROM preserved').single['value'], 'kept');
+  });
+
+  test('enforces persisted schema constraints on a reopened database', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'activity_integrity_',
+    );
+    addTearDown(() => directory.delete(recursive: true));
+    final path = '${directory.path}/activity_monitor.db';
+    initializeDatabaseAtPath(path);
+    final db = sqlite3.open(path);
+    addTearDown(db.close);
+    db.execute('PRAGMA foreign_keys = ON');
+    expect(
+      () => db.execute(
+        "INSERT INTO calendar_entries (id, title, date, cadence) VALUES ('invalid', '', '2024-01-01', 'daily')",
+      ),
+      throwsA(isA<SqliteException>()),
+    );
+    expect(
+      () => db.execute(
+        "INSERT INTO calendar_entry_participants VALUES ('missing', 'missing')",
+      ),
+      throwsA(isA<SqliteException>()),
+    );
   });
 
   test('applies only pending migrations to an existing database', () {

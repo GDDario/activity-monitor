@@ -25,5 +25,7 @@ Use ApplicationShell, ScreenTitleBar, ActivityTheme, Riverpod composition and Fl
 ## Testing strategy
 Use red-green-refactor for each new behavior. Test date boundaries and filters independently; test migrations and real SQLite reads; use repository fakes for ViewModel and widget presentation tests covering localization, focus, accessibility and responsive sizes. Run dart format ., flutter analyze and flutter test from app. Compare against the Stitch image and HTML.
 
+Add a numbered, non-destructive migration for an integer completion flag constrained to 0 or 1, defaulting existing and newly inserted entries to pending. The domain model and repository expose the status; the ViewModel derives selected-day counts after both filters, and the view displays localized counts only when data is available. Completion changes remain outside this feature. Rolling back this migration requires backing up and rebuilding the table and would lose completion status; no automatic destructive rollback is performed.
+
 ## Security and performance constraints
 Treat persisted input as untrusted, enforce schema constraints, avoid secrets and sensitive logs, and show safe errors. This issue uses a single local user, with no remote authorization or encryption. Avoid lengthy synchronous SQLite work on the UI isolate.

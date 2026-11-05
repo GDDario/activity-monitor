@@ -14,12 +14,13 @@ class ScreenTitleBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final pt = Localizations.localeOf(context).languageCode == 'pt';
     return Row(
       children: [
         Semantics(
           button: true,
           container: true,
-          label: 'Profile initials AM',
+          label: pt ? 'Iniciais do perfil AM' : 'Profile initials AM',
           child: InkResponse(
             onTap: () => context.go(AppDestination.profile.path),
             radius: 28,
@@ -48,16 +49,20 @@ class ScreenTitleBar extends StatelessWidget {
           ),
         ),
         IconButton(
-          tooltip: 'Open calendar',
+          tooltip: pt ? 'Abrir calendário' : 'Open calendar',
           onPressed: () => context.go(AppDestination.calendar.path),
           icon: const Icon(Icons.calendar_today_outlined),
         ),
         IconButton(
-          tooltip: 'Open notifications',
+          tooltip: pt ? 'Abrir notificações' : 'Open notifications',
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Notifications are not available yet.'),
+              SnackBar(
+                content: Text(
+                  pt
+                      ? 'As notificações ainda não estão disponíveis.'
+                      : 'Notifications are not available yet.',
+                ),
               ),
             );
           },

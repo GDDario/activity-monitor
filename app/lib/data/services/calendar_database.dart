@@ -16,12 +16,13 @@ class CalendarDatabase {
     );
     final entries = db
         .select(
-          'SELECT id, title, date, cadence FROM calendar_entries ORDER BY date, title',
+          'SELECT id, title, date, cadence, completed FROM calendar_entries ORDER BY date, title',
         )
         .map((r) {
           final id = r['id'] as String;
           return CalendarEntry(
             id: id,
+            isDone: r['completed'] == 1,
             title: r['title'] as String,
             date: DateTime.parse(r['date'] as String),
             cadence: switch (r['cadence']) {

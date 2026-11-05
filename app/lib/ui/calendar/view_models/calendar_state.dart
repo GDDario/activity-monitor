@@ -19,6 +19,15 @@ class CalendarState {
       )
       .toList();
 
+  List<CalendarEntry> get selectedEntries => matchingEntries
+      .where(
+        (entry) =>
+            entry.date.year == selected.year &&
+            entry.date.month == selected.month &&
+            entry.date.day == selected.day,
+      )
+      .toList();
+
   List<DateTime> get visibleDays {
     final anchor = weekMode
         ? selected

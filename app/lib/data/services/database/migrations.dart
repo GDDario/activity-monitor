@@ -5,6 +5,7 @@ import 'package:app/data/services/database/calendar_seeder.dart';
 import 'package:app/data/services/database/database_migration.dart';
 import 'package:app/data/services/database/migrations/migration_0001_create_calendar_tables.dart';
 import 'package:app/data/services/database/migrations/migration_0002_seed_calendar_examples.dart';
+import 'package:app/data/services/database/migrations/migration_0003_add_calendar_completion.dart';
 
 export 'package:app/data/services/database/database_migration.dart';
 
@@ -21,6 +22,7 @@ void migrateDatabase(
       <DatabaseMigration>[
         const Migration0001CreateCalendarTables(),
         Migration0002SeedCalendarExamples(seeder),
+        const Migration0003AddCalendarCompletion(),
       ];
   for (var i = 0; i < steps.length; i++) {
     if (steps[i].version != i + 1) {

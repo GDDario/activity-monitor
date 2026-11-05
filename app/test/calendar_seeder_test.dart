@@ -6,7 +6,7 @@ import 'package:app/data/services/database/calendar_seeder.dart';
 import 'package:app/data/services/database/migrations.dart';
 
 void main() {
-  test('seeds current month once and records both migrations', () {
+  test('seeds current month once and records migrations', () {
     final db = sqlite3.openInMemory();
     addTearDown(db.close);
     final seeder = CalendarSeeder(
@@ -34,7 +34,7 @@ void main() {
       'one-time',
     });
     expect(db.select('SELECT * FROM calendar_entry_participants'), isNotEmpty);
-    expect(db.select('SELECT migration, batch FROM migrations').length, 2);
+    expect(db.select('SELECT migration, batch FROM migrations').length, 3);
     migrateDatabase(
       db,
       calendarSeeder: CalendarSeeder(
@@ -43,7 +43,7 @@ void main() {
       ),
     );
     expect(db.select('SELECT * FROM calendar_entries').length, entries.length);
-    expect(db.select('SELECT * FROM migrations').length, 2);
+    expect(db.select('SELECT * FROM migrations').length, 3);
   });
 
   test('upgrades legacy version one and preserves records', () {
@@ -82,8 +82,8 @@ void main() {
           .single['title'],
       'Saved',
     );
-    expect(db.select('PRAGMA user_version').single.values.single, 2);
-    expect(db.select('SELECT migration, batch FROM migrations').length, 2);
+    expect(db.select('PRAGMA user_version').single.values.single, 3);
+    expect(db.select('SELECT migration, batch FROM migrations').length, 3);
   });
 
   test('rolls back seeding and history when the seeder fails', () {
@@ -112,7 +112,7 @@ void main() {
         newId: const Uuid().v7,
       ),
     );
-    expect(db.select('SELECT * FROM migrations').length, 2);
+    expect(db.select('SELECT * FROM migrations').length, 3);
   });
 
   test(

@@ -5,11 +5,13 @@ Read constitution, architecture, conventions, design reference, ADR 0001 and thi
 ## Task 1: Calendar persistence
 **What to build:** Durable constrained entries and participants, versioned migration and repository with unavailable state.
 **Files likely affected:** app/lib/data, app/lib/domain, app/lib/app/dependencies, app/test.
-**Acceptance criteria:** Fresh SQLite opens with version 1, constraints are enforced, persisted entries and participants can be read, failures are safe.
+**Acceptance criteria:** Fresh SQLite opens at the latest schema version, constraints are enforced, persisted entries and participants can be read, failures are safe.
 **Dependencies:** none.
-- [ ] Write failing real SQLite migration, constraints and read tests.
-- [ ] Implement database lifecycle, migration and repository; verify tests pass.
-- [ ] Refactor and validate data integrity and safe failure handling.
+- [x] Verify migrations and data persistence on a real SQLite database, including reopening after migration.
+- [x] Implement database lifecycle, migration and repository; verify tests pass.
+- [x] Validate data integrity and safe failure handling.
+- [x] Verify persistence across a real database reopen and constraint enforcement on new connections.
+- [x] Verify a storage failure is presented as unavailable rather than empty.
 - [x] Verify an in-memory migration creates tables, enforces cadence and foreign keys, and preserves records when run again.
 - [x] Verify repository reads stored entries and participant links.
 
@@ -18,9 +20,12 @@ Read constitution, architecture, conventions, design reference, ADR 0001 and thi
 **Files likely affected:** app/lib/ui/calendar/view_models, app/test.
 **Acceptance criteria:** Month clamping, leap years, week boundaries, selection and filter intersection follow the spec.
 **Dependencies:** Task 1.
-- [ ] Write failing state tests for navigation, mode, boundaries and filters.
-- [ ] Implement state and verify tests pass.
-- [ ] Refactor and validate acceptance criteria.
+- [x] Verify state tests for navigation, mode, boundaries and filters.
+- [x] Implement state and verify tests pass.
+- [x] Refactor and validate acceptance criteria.
+- [x] Verify month/year boundaries, leap years, adjacent dates and week transitions.
+- [x] Verify cadence and participant filter combination and reset behavior.
+- [x] Move calendar interaction state and filtering into a ViewModel with tested commands and observable updates.
 - [x] Verify leap-year month clamping, week movement, a month grid spanning years, and cadence/participant intersection.
 
 ## Task 3: Calendar presentation
@@ -28,9 +33,13 @@ Read constitution, architecture, conventions, design reference, ADR 0001 and thi
 **Files likely affected:** app/lib/ui/calendar, app/test.
 **Acceptance criteria:** Both locales, selected states, empty/unavailable states, keyboard focus and compact/wide layouts are usable.
 **Dependencies:** Tasks 1 and 2.
-- [ ] Write failing widget tests for navigation, filters, states, localization and responsive layout.
-- [ ] Implement presentation and verify tests pass.
-- [ ] Refactor and compare against Stitch image, HTML and design reference.
+- [x] Verify widget tests for navigation, filters, states, localization and responsive layout.
+- [x] Implement the covered presentation behaviors and verify the tests pass.
+- [ ] Compare at a matching viewport against Stitch. The reference image and HTML are in `.scratches/stitch_shared_activity_tracker/calendar/`; `.scratches/calendar-comparison.png` captures the current Android screen at a different viewport. Both show a calendar card, indicators, legend, filters and agenda. The app uses larger spacing and simplified data-backed agenda cards; the reference includes task details and actions outside this feature. The user accepted the shared header and chose the existing full-width bottom navigation. A matching-viewport comparison remains outstanding.
+- [x] Verify accessible names, selected states, keyboard focus and overflowing filter access in widget tests.
+- [x] Verify selected-date results, empty and unavailable states, and navigation in supported locales in widget tests.
+- [x] Display stored selected-date entries in readable cards using only available title, cadence and participant data.
+- [x] Verify compact and wide layouts with increased text size in widget tests.
 - [x] Verify that the mode selector switches to week navigation and that a cadence filter changes the selected-date entries.
 
 ## Task 4: Final verification
@@ -38,8 +47,8 @@ Read constitution, architecture, conventions, design reference, ADR 0001 and thi
 **Files likely affected:** app, feature documents.
 **Acceptance criteria:** All feature criteria, existing tests and quality gates pass.
 **Dependencies:** Tasks 1–3.
-- [ ] Verify accessibility, both locales and enlarged text at compact and wide sizes.
-- [ ] Run dart format ., flutter analyze and flutter test from app.
+- [ ] Verify accessibility, both locales and enlarged text on supported devices. Widget tests cover keyboard interaction, focus, responsive sizes, labeled targets and Android's 48-pixel target guideline in both locales. Narrow grids scroll horizontally to preserve target size and reveal the selection. No screen-reader device audit has been completed.
+- [x] Run dart format ., flutter analyze and flutter test from app (64 tests passed).
 - [ ] Verify every acceptance criterion and record remaining blockers.
 
 ## Task 5: Startup database initialization and migrations
@@ -83,13 +92,24 @@ Read constitution, architecture, conventions, design reference, ADR 0001 and thi
 - [x] Implement the indicators, rerun tests, and compare against the available design reference. Selected indicators are intentionally larger and spaced apart as requested; recurring entries have an additional icon.
 - [x] Run dart format ., flutter analyze and flutter test; record visual verification limitations.
 
-Outstanding: complete first-use persistence and failure-path verification on supported platforms; test and verify the remaining navigation, localization, keyboard, semantics, large-text, responsive and filter scenarios; finish full-screen comparison and alignment with the design reference. The current implementation and automated checks do not establish feature completeness.
+Outstanding: verify first-use persistence and failure paths on supported native platforms, perform device accessibility and layout checks, and compare a matching-viewport rendered screen against the Stitch reference. An Android debug build launched with an existing database; it does not establish fresh-install or failure behavior. Host SQLite tests cover database reopening and migration failure; widget tests cover representative interaction, localization, semantics, keyboard, and responsive scenarios. These checks do not establish platform or visual completeness.
+
+## Task 9: Selected-day pending and done counts
+**What to build:** Persist completion status and display selected-day pending and done counts scoped to active filters.
+**Files likely affected:** app/lib/data, app/lib/domain, app/lib/ui/calendar, app/test, app/README.md.
+**Acceptance criteria:** Existing entries become pending without data loss; filtered counts reflect stored status and selected date; unavailable storage shows no counts.
+**Dependencies:** Tasks 1–3.
+- [x] Write failing migration and repository tests for status defaults, constraints, upgrade preservation and reading done entries.
+- [x] Add a non-destructive numbered migration and expose status through the repository; verify tests.
+- [x] Write failing widget tests for selected-day, cadence and participant counts, empty data and unavailable storage.
+- [x] Implement localized pending and done counts and verify the tests.
+- [ ] Complete device accessibility and matching-viewport visual verification; automated label, 48-pixel target and layout checks pass.
 
 ## Assumptions to review
 1. Assumption: Entries are local materialized occurrences; recurrence expansion and synchronization are later work. — Impact: HIGH
    Assumption answer: Yes.
 2. Assumption: One cadence and at most one participant combine with AND; All Tasks resets cadence and tapping an active participant clears it. — Impact: MEDIUM
-   Assumption answer: Pending for filter combination and reset behavior. The user clarified that task creation is out of scope.
+   Assumption answer: Yes, keep these filter combination and reset rules. Task creation is out of scope.
 3. Assumption: Native storage uses an application-support directory and web storage is unavailable. — Impact: HIGH
    Assumption answer: Yes.
 4. Assumption: Single local user, with no remote authorization or encryption in this issue. — Impact: HIGH
@@ -100,6 +120,8 @@ Outstanding: complete first-use persistence and failure-path verification on sup
    Assumption answer: Yes.
 7. Assumption: Explicitly requested example entries are installed on existing and new databases, including release builds, and are labeled as examples. — Impact: HIGH
    Assumption answer: Yes.
+8. Decision: Keep color-distinguished circular solo and collaborative indicators, with category names exposed to assistive technology; retain the All Tasks label. The user prefers both choices.
+9. Decision: Existing entries become pending; pending and done counts apply to the selected day and current cadence and participant filters. Completion actions remain out of scope.
 
 ## Review checkpoint
 Verify assumptions, screen against Stitch, data semantics and every acceptance criterion before handoff.

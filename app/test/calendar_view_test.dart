@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -7,8 +8,75 @@ import 'package:app/app/dependencies/app_dependencies.dart';
 import 'package:app/domain/models/calendar_data.dart';
 import 'package:app/ui/core/theme/activity_theme.dart';
 import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/calendar/view_models/calendar_view_model.dart';
 
 void main() {
+  testWidgets(
+    'counts pending and done entries for the selected date and filters',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final day = DateTime(2024, 1, 15);
+      final model = CalendarViewModel(
+        day,
+        () async => CalendarData(
+          [
+            CalendarEntry(
+              id: 'p',
+              title: 'Pending',
+              date: day,
+              cadence: CalendarCadence.daily,
+              participantIds: const ['person'],
+            ),
+            CalendarEntry(
+              id: 'd',
+              title: 'Done',
+              date: day,
+              cadence: CalendarCadence.daily,
+              participantIds: const ['person'],
+              isDone: true,
+            ),
+            CalendarEntry(
+              id: 'other',
+              title: 'Other',
+              date: day,
+              cadence: CalendarCadence.weekly,
+              participantIds: const [],
+            ),
+            CalendarEntry(
+              id: 'tomorrow',
+              title: 'Tomorrow',
+              date: DateTime(2024, 1, 16),
+              cadence: CalendarCadence.daily,
+              participantIds: const [],
+              isDone: true,
+            ),
+          ],
+          const [CalendarParticipant('person', 'Lee')],
+        ),
+      );
+      addTearDown(model.dispose);
+      await model.load();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [calendarViewModelProvider.overrideWith((ref) => model)],
+          child: const MaterialApp(home: CalendarView()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('2 pending · 1 done'), findsOneWidget);
+      await tester.tap(find.text('Daily Habits'));
+      await tester.pumpAndSettle();
+      expect(find.text('1 pending · 1 done'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilterChip, 'Lee'));
+      await tester.pumpAndSettle();
+      expect(find.text('1 pending · 1 done'), findsOneWidget);
+      model.selectDate(DateTime(2024, 1, 16));
+      await tester.pumpAndSettle();
+      expect(find.text('0 pending · 0 done'), findsOneWidget);
+    },
+  );
+
   testWidgets('places view selector above the calendar card', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -389,6 +457,172 @@ void main() {
     expect(find.byTooltip('Next week'), findsOneWidget);
   });
 
+  testWidgets('navigates leap month and week, then returns to today', (
+    tester,
+  ) async {
+    final model = CalendarViewModel(
+      DateTime(2024, 1, 31),
+      () async => const CalendarData([], []),
+    );
+    addTearDown(model.dispose);
+    await model.load();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [calendarViewModelProvider.overrideWith((ref) => model)],
+        child: MaterialApp(
+          theme: ActivityTheme.light(),
+          home: const CalendarView(),
+        ),
+      ),
+    );
+    Finder selectedDate() => find.byWidgetPredicate(
+      (widget) =>
+          widget is Semantics &&
+          widget.properties.button == true &&
+          widget.properties.selected == true &&
+          (widget.properties.label?.contains('2024') ?? false),
+    );
+    expect(
+      tester.widget<Semantics>(selectedDate()).properties.label,
+      contains('January 31, 2024'),
+    );
+    await tester.tap(find.byTooltip('Next month'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<Semantics>(selectedDate()).properties.label,
+      contains('February 29, 2024'),
+    );
+    await tester.tap(find.text('Week'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<Semantics>(selectedDate()).properties.label,
+      contains('February 29, 2024'),
+    );
+    await tester.tap(find.byTooltip('Next week'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<Semantics>(selectedDate()).properties.label,
+      contains('March 7, 2024'),
+    );
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Today'));
+    await tester.pumpAndSettle();
+    final now = DateTime.now();
+    expect(model.calendar.selected, DateTime(now.year, now.month, now.day));
+  });
+
+  testWidgets('shows a helpful empty state for a day without entries', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          calendarDataProvider.overrideWith(
+            (ref) async => const CalendarData([], []),
+          ),
+        ],
+        child: const MaterialApp(home: CalendarView()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text('No entries for this day and these filters.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('keyboard can focus and activate an overflowing filter', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          calendarDataProvider.overrideWith(
+            (ref) async => const CalendarData([], []),
+          ),
+        ],
+        child: MaterialApp(
+          theme: ActivityTheme.light(),
+          home: const CalendarView(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final weekly = find.widgetWithText(FilterChip, 'Weekly');
+    var focused = false;
+    for (var i = 0; i < 100 && !focused; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      final context = FocusManager.instance.primaryFocus?.context;
+      if (context != null && weekly.evaluate().isNotEmpty) {
+        focused = find
+            .ancestor(of: find.byWidget(context.widget), matching: weekly)
+            .evaluate()
+            .isNotEmpty;
+      }
+    }
+    expect(focused, isTrue);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+    expect(tester.widget<FilterChip>(weekly).selected, isTrue);
+  });
+
+  testWidgets('keyboard can focus and select a calendar date', (tester) async {
+    final model = CalendarViewModel(
+      DateTime(2024, 1, 15),
+      () async => const CalendarData([], []),
+    );
+    addTearDown(model.dispose);
+    await model.load();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [calendarViewModelProvider.overrideWith((ref) => model)],
+        child: MaterialApp(
+          theme: ActivityTheme.light(),
+          home: const CalendarView(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final target = find.byWidgetPredicate(
+      (widget) =>
+          widget is Semantics &&
+          widget.properties.button == true &&
+          (widget.properties.label?.contains('January 16, 2024') ?? false),
+    );
+    var focused = false;
+    for (var i = 0; i < 100 && !focused; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      final context = FocusManager.instance.primaryFocus?.context;
+      if (context != null) {
+        focused = find
+            .ancestor(of: find.byWidget(context.widget), matching: target)
+            .evaluate()
+            .isNotEmpty;
+      }
+    }
+    expect(focused, isTrue);
+    final buttonFinder = find.descendant(
+      of: target,
+      matching: find.byType(TextButton),
+    );
+    final button = tester.widget<TextButton>(buttonFinder);
+    final focusedOverlay =
+        button.style?.overlayColor?.resolve({WidgetState.focused}) ??
+        button
+            .defaultStyleOf(tester.element(buttonFinder))
+            .overlayColor
+            ?.resolve({WidgetState.focused});
+    expect(focusedOverlay?.a ?? 0, greaterThan(0));
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+    expect(tester.widget<Semantics>(target).properties.selected, true);
+  });
+
   testWidgets('filters selected date entries by cadence and participant', (
     tester,
   ) async {
@@ -431,6 +665,114 @@ void main() {
     expect(find.text('Weekly reading'), findsNothing);
   });
 
+  testWidgets(
+    'participant and recurrence filters combine and reset independently',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final today = DateTime.now();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            calendarDataProvider.overrideWith(
+              (ref) async => CalendarData(
+                [
+                  CalendarEntry(
+                    id: 'daily',
+                    title: 'Daily with Lee',
+                    date: today,
+                    cadence: CalendarCadence.daily,
+                    participantIds: const ['p'],
+                  ),
+                  CalendarEntry(
+                    id: 'weekly',
+                    title: 'Weekly with Lee',
+                    date: today,
+                    cadence: CalendarCadence.weekly,
+                    participantIds: const ['p'],
+                  ),
+                  CalendarEntry(
+                    id: 'solo',
+                    title: 'Daily alone',
+                    date: today,
+                    cadence: CalendarCadence.daily,
+                    participantIds: const [],
+                  ),
+                ],
+                const [CalendarParticipant('p', 'Lee')],
+              ),
+            ),
+          ],
+          child: const MaterialApp(home: CalendarView()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Daily Habits'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.widgetWithText(FilterChip, 'Lee'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Lee'));
+      await tester.pumpAndSettle();
+      expect(find.text('Daily with Lee'), findsOneWidget);
+      expect(find.text('Weekly with Lee'), findsNothing);
+      expect(find.text('Daily alone'), findsNothing);
+      await tester.ensureVisible(find.text('All Tasks'));
+      await tester.tap(find.text('All Tasks'));
+      await tester.pumpAndSettle();
+      expect(find.text('Weekly with Lee'), findsOneWidget);
+      expect(find.text('Daily alone'), findsNothing);
+      await tester.ensureVisible(find.widgetWithText(FilterChip, 'Lee'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Lee'));
+      await tester.pumpAndSettle();
+      expect(find.text('Daily alone'), findsOneWidget);
+    },
+  );
+
+  testWidgets('selected-date cards show stored recurrence and participant', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final today = DateTime.now();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          calendarDataProvider.overrideWith(
+            (ref) async => CalendarData(
+              [
+                CalendarEntry(
+                  id: 'a',
+                  title: 'Weekly walk',
+                  date: today,
+                  cadence: CalendarCadence.weekly,
+                  participantIds: const ['p'],
+                ),
+              ],
+              const [CalendarParticipant('p', 'Lee')],
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          theme: ActivityTheme.light(),
+          home: const CalendarView(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final card = find.ancestor(
+      of: find.text('Weekly walk'),
+      matching: find.byType(Card),
+    );
+    expect(card, findsOneWidget);
+    expect(
+      find.descendant(of: card, matching: find.text('Weekly')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: card, matching: find.text('Lee')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('shows Portuguese calendar controls on a compact screen', (
     tester,
   ) async {
@@ -454,7 +796,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Mês'), findsOneWidget);
     expect(find.text('Semana'), findsOneWidget);
-    expect(find.text('Hoje'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, 'Hoje'), findsOneWidget);
+    expect(find.byTooltip('Abrir calendário'), findsOneWidget);
+    expect(find.byTooltip('Abrir notificações'), findsOneWidget);
+    expect(find.text('Pessoas'), findsOneWidget);
+    expect(find.text('Perfil'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Todas as tarefas'),
       200,
@@ -540,4 +886,129 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('wide calendar remains usable with enlarged text', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1200, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          calendarDataProvider.overrideWith(
+            (ref) async => const CalendarData([], []),
+          ),
+        ],
+        child: MaterialApp(
+          theme: ActivityTheme.light(),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: const TextScaler.linear(2)),
+            child: child!,
+          ),
+          home: const CalendarView(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(find.byTooltip('Next month'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'Portuguese calendar announces the selected date and empty state',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final model = CalendarViewModel(
+        DateTime(2024, 1, 31),
+        () async => const CalendarData([], []),
+      );
+      addTearDown(model.dispose);
+      await model.load();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [calendarViewModelProvider.overrideWith((ref) => model)],
+          child: const MaterialApp(
+            locale: Locale('pt', 'BR'),
+            supportedLocales: [Locale('en', 'US'), Locale('pt', 'BR')],
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
+            home: CalendarView(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final selected = find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.button == true &&
+            widget.properties.selected == true &&
+            (widget.properties.label?.contains('2024') ?? false),
+      );
+      expect(
+        tester.widget<Semantics>(selected).properties.label,
+        contains('janeiro'),
+      );
+      expect(
+        find.text('Nenhuma atividade para este dia e filtros.'),
+        findsOneWidget,
+      );
+      expect(find.text('0 pendentes · 0 concluídas'), findsOneWidget);
+    },
+  );
+
+  for (final size in [const Size(360, 800), const Size(1200, 900)]) {
+    testWidgets('Portuguese navigation and failure state at $size', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(size);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final model = CalendarViewModel(
+        DateTime(2024, 1, 31),
+        () async => throw StateError('private detail'),
+      );
+      addTearDown(model.dispose);
+      await model.load();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [calendarViewModelProvider.overrideWith((ref) => model)],
+          child: MaterialApp(
+            locale: const Locale('pt', 'BR'),
+            supportedLocales: const [Locale('en', 'US'), Locale('pt', 'BR')],
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context)
+                  .copyWith(textScaler: const TextScaler.linear(2)),
+              child: child!,
+            ),
+            home: const CalendarView(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byTooltip('Próximo mês'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Próximo mês'));
+      await tester.pumpAndSettle();
+      expect(model.calendar.selected, DateTime(2024, 2, 29));
+      await tester.scrollUntilVisible(
+        find.text('Os dados do calendário estão indisponíveis no momento.'),
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(ListView),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      expect(
+        find.text('Os dados do calendário estão indisponíveis no momento.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('private detail'), findsNothing);
+      expect(find.textContaining('pendentes ·'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
