@@ -514,11 +514,18 @@ Other appropriate types are allowed. The optional scope identifies the part of
 the project affected. A body and footers MAY follow the subject, separated by
 blank lines, when additional context is useful.
 
-When a relevant issue number is known, append it to the subject as `#number`.
-The issue number MAY come from the branch name: for example,
-`feature/1-add-profile` indicates issue `#1`. Omit it when there is no
-associated issue. Indicate breaking changes with `!` or a `BREAKING CHANGE:`
-footer as specified by Conventional Commits.
+Before creating a commit, inspect the current branch name for an issue number.
+When the branch name begins with a category followed by an issue number and a
+hyphen, use that number in every commit subject on the branch. For example,
+`feature/1-application-foundation` requires `#1`, and
+`feature/6-calendar-screen` requires `#6`, including for documentation or
+maintenance commits. Append it to the subject as `#number`.
+
+If the branch name does not identify an issue, use another known relevant issue
+number; omit the issue number only when none is known. An explicit user
+instruction about the commit message takes precedence. Indicate breaking
+changes with `!` or a `BREAKING CHANGE:` footer as specified by Conventional
+Commits.
 
 Examples:
 
