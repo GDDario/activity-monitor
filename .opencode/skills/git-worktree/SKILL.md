@@ -22,8 +22,10 @@ Monitor development worktree.
 
 ## Create the worktree
 
-From the repository root, create a branch worktree and independently resolve
-Flutter packages:
+Create a branch worktree and independently resolve Flutter packages. By default,
+the script places it under `../activity-monitor.worktrees/` relative to the main
+checkout, even when invoked from another worktree. Branch name slashes become
+hyphens in the directory name:
 
 ```bash
 .opencode/skills/git-worktree/scripts/create_worktree.sh \
@@ -34,12 +36,11 @@ Pass an optional destination and start point when needed:
 
 ```bash
 .opencode/skills/git-worktree/scripts/create_worktree.sh \
-  feature/my-change ../activity-monitor-my-change origin/main
+  feature/my-change ../activity-monitor.worktrees/custom-name origin/main
 ```
 
-When this skill is used by an OpenCode agent, prefer the `opencode.worktree_create`
-tool to create an isolated worktree. Then run `flutter pub get` in its `app/`
-directory and move the active session with `opencode.session_move` only after
+Use the repository script to ensure the default destination is respected. When
+using OpenCode, move the active session with `opencode.session_move` only after
 the user asks to work there.
 
 ## Run Flutter without port collisions
@@ -63,17 +64,3 @@ and `--web-hostname 127.0.0.1`; Chrome additionally receives
 `--web-browser-debug-port`.
 It prints every allocated port before Flutter starts. Pass normal `flutter run`
 arguments after `--`, for example `-- --dart-define=API_URL=http://localhost`.
-
-## Verify before finishing
-
-In the new worktree's `app/` directory, run:
-
-```bash
-dart format .
-flutter analyze
-flutter test
-```
-
-Use the DTD address printed by the launch command to connect the Dart MCP
-server before runtime inspection or hot reload. Never run two worktrees on the
-same physical device unless their app identifiers/flavors are also distinct.

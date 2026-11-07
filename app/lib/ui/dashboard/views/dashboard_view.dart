@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:app/ui/core/theme/activity_theme.dart';
+import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_dimensions.dart';
 import 'package:app/ui/core/widgets/activity_card.dart';
 import 'package:app/ui/core/widgets/application_shell.dart';
 import 'package:app/ui/core/widgets/screen_title_bar.dart';

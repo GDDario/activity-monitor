@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:app/ui/core/theme/activity_theme.dart';
+import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_dimensions.dart';
 
 enum AppDestination {
   today('/', 'Today', Icons.wb_sunny_outlined),
@@ -14,6 +15,16 @@ enum AppDestination {
   final String path;
   final String label;
   final IconData icon;
+
+  String localizedLabel(BuildContext context) {
+    if (Localizations.localeOf(context).languageCode != 'pt') return label;
+    return switch (this) {
+      AppDestination.today => 'Hoje',
+      AppDestination.people => 'Pessoas',
+      AppDestination.calendar => 'Calendário',
+      AppDestination.profile => 'Perfil',
+    };
+  }
 }
 
 class ApplicationShell extends StatelessWidget {
@@ -72,7 +83,7 @@ class _BottomNavigation extends StatelessWidget {
         for (final destination in AppDestination.values)
           NavigationDestination(
             icon: Icon(destination.icon),
-            label: destination.label,
+            label: destination.localizedLabel(context),
           ),
       ],
     );
@@ -101,7 +112,7 @@ class _SideNavigation extends StatelessWidget {
         for (final destination in AppDestination.values)
           NavigationRailDestination(
             icon: Icon(destination.icon),
-            label: Text(destination.label),
+            label: Text(destination.localizedLabel(context)),
           ),
       ],
     );

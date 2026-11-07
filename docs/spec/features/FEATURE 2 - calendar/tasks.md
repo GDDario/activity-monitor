@@ -1,0 +1,127 @@
+# SECTION 3: TASKS
+
+Read constitution, architecture, conventions, design reference, ADR 0001 and this feature spec before implementation. Follow failing test → minimum implementation → refactor for each behavior; synchronize the spec first if behavior changes.
+
+## Task 1: Calendar persistence
+**What to build:** Durable constrained entries and participants, versioned migration and repository with unavailable state.
+**Files likely affected:** app/lib/data, app/lib/domain, app/lib/app/dependencies, app/test.
+**Acceptance criteria:** Fresh SQLite opens at the latest schema version, constraints are enforced, persisted entries and participants can be read, failures are safe.
+**Dependencies:** none.
+- [x] Verify migrations and data persistence on a real SQLite database, including reopening after migration.
+- [x] Implement database lifecycle, migration and repository; verify tests pass.
+- [x] Validate data integrity and safe failure handling.
+- [x] Verify persistence across a real database reopen and constraint enforcement on new connections.
+- [x] Verify a storage failure is presented as unavailable rather than empty.
+- [x] Verify an in-memory migration creates tables, enforces cadence and foreign keys, and preserves records when run again.
+- [x] Verify repository reads stored entries and participant links.
+
+## Task 2: Calendar state and filtering
+**What to build:** Date selection, month/week movement and cadence/participant filtering.
+**Files likely affected:** app/lib/ui/calendar/view_models, app/test.
+**Acceptance criteria:** Month clamping, leap years, week boundaries, selection and filter intersection follow the spec.
+**Dependencies:** Task 1.
+- [x] Verify state tests for navigation, mode, boundaries and filters.
+- [x] Implement state and verify tests pass.
+- [x] Refactor and validate acceptance criteria.
+- [x] Verify month/year boundaries, leap years, adjacent dates and week transitions.
+- [x] Verify cadence and participant filter combination and reset behavior.
+- [x] Move calendar interaction state and filtering into a ViewModel with tested commands and observable updates.
+- [x] Verify leap-year month clamping, week movement, a month grid spanning years, and cadence/participant intersection.
+
+## Task 3: Calendar presentation
+**What to build:** Responsive localized Stitch-inspired calendar, legend, filter chips, selected-date results and accessible controls.
+**Files likely affected:** app/lib/ui/calendar, app/test.
+**Acceptance criteria:** Both locales, selected states, empty/unavailable states, keyboard focus and compact/wide layouts are usable.
+**Dependencies:** Tasks 1 and 2.
+- [x] Verify widget tests for navigation, filters, states, localization and responsive layout.
+- [x] Implement the covered presentation behaviors and verify the tests pass.
+- [ ] Compare at a matching viewport against Stitch. The reference image and HTML are in `.scratches/stitch_shared_activity_tracker/calendar/`; `.scratches/calendar-comparison.png` captures the current Android screen at a different viewport. Both show a calendar card, indicators, legend, filters and agenda. The app uses larger spacing and simplified data-backed agenda cards; the reference includes task details and actions outside this feature. The user accepted the shared header and chose the existing full-width bottom navigation. A matching-viewport comparison remains outstanding.
+- [x] Verify accessible names, selected states, keyboard focus and overflowing filter access in widget tests.
+- [x] Verify selected-date results, empty and unavailable states, and navigation in supported locales in widget tests.
+- [x] Display stored selected-date entries in readable cards using only available title, cadence and participant data.
+- [x] Verify compact and wide layouts with increased text size in widget tests.
+- [x] Verify that the mode selector switches to week navigation and that a cadence filter changes the selected-date entries.
+
+## Task 4: Final verification
+**What to build:** Validate the feature and synchronize documentation.
+**Files likely affected:** app, feature documents.
+**Acceptance criteria:** All feature criteria, existing tests and quality gates pass.
+**Dependencies:** Tasks 1–3.
+- [ ] Verify accessibility, both locales and enlarged text on supported devices. Widget tests cover keyboard interaction, focus, responsive sizes, labeled targets and Android's 48-pixel target guideline in both locales. Narrow grids scroll horizontally to preserve target size and reveal the selection. No screen-reader device audit has been completed.
+- [x] Run dart format ., flutter analyze and flutter test from app (64 tests passed).
+- [ ] Verify every acceptance criterion and record remaining blockers.
+
+## Task 5: Startup database initialization and migrations
+**What to build:** Initialize native SQLite at app startup, apply ordered migrations safely, and document a development reset.
+**Files likely affected:** app/lib/app, app/lib/data/services, app/test, app/README.md.
+**Acceptance criteria:** First boot creates a versioned database; reopening preserves records; failed and unsupported migrations do not erase data; calendar reports initialization failure as unavailable.
+**Dependencies:** Task 1.
+- [x] Write failing tests for startup initialization without calendar navigation and propagation of initialization failures.
+- [x] Write failing SQLite tests for fresh creation, reopening, unsupported versions and transactional migration failure.
+- [x] Implement eager startup initialization and ordered transactional migrations; pass the tests.
+- [x] Document development database location and a safe, explicit recreation procedure.
+- [x] Run dart format ., flutter analyze, and flutter test; verify the acceptance criteria with automated tests.
+
+## Task 6: Migration history and one-time calendar seed
+**What to build:** Record versioned migrations and atomically run an injected example seeder for the current local month on fresh and existing version-1 databases.
+**Files likely affected:** app/lib/data/services/database, app/test, app/README.md.
+**Acceptance criteria:** Examples are labeled, include today, different cadences and participants; history prevents repeats; legacy data is preserved; failures roll back seed and history.
+**Dependencies:** Task 5.
+- [x] Write failing tests for fresh and legacy migration history, seeder execution, reopens and next-month behavior.
+- [x] Write failing tests for seeder rollback, UUIDv7 generation, invalid history and date boundaries.
+- [x] Implement transactional migration history and injected calendar seeder; pass the tests.
+- [x] Document example data, migration tracking and recreation behavior.
+- [x] Run dart format ., flutter analyze and flutter test; verify criteria and update this checklist.
+
+## Task 7: Numbered migration files and classes
+**What to build:** Put each registered migration in a separate numbered file and numbered class under the migrations directory, preserving applied migration identifiers.
+**Files likely affected:** app/lib/data/services/database, app/test, docs/spec/project/conventions.md, app/README.md.
+**Acceptance criteria:** Filenames and classes contain matching sortable numbers; existing migration history and seed-once behavior remain compatible.
+**Dependencies:** Task 6.
+- [x] Write a failing test for the numbered registered migrations and their persisted identifiers.
+- [x] Extract numbered migration classes and verify fresh and existing databases and seed-once behavior.
+- [x] Document the naming convention and run dart format ., flutter analyze, and flutter test.
+
+## Task 8: Startup verification and readable calendar indicators
+**What to build:** Verify the application root initializes and seeds a real database before calendar navigation, and use legible circular solo/collaborative indicators with a matching legend.
+**Files likely affected:** app/test/database_startup_test.dart, app/test/calendar_view_test.dart, app/lib/ui/calendar/views/calendar_view.dart.
+**Acceptance criteria:** Startup creates and seeds SQLite without visiting Calendar; legible indicators and the legend use the specified colors and shapes, and dates expose their categories to assistive technology.
+**Dependencies:** Tasks 6 and 7.
+- [x] Verify root startup initializes, migrates and seeds a real database without visiting Calendar.
+- [x] Write and run failing widget tests for visible, distinguishable indicators and their legend.
+- [x] Implement the indicators, rerun tests, and compare against the available design reference. Selected indicators are intentionally larger and spaced apart as requested; recurring entries have an additional icon.
+- [x] Run dart format ., flutter analyze and flutter test; record visual verification limitations.
+
+Outstanding: verify first-use persistence and failure paths on supported native platforms, perform device accessibility and layout checks, and compare a matching-viewport rendered screen against the Stitch reference. An Android debug build launched with an existing database; it does not establish fresh-install or failure behavior. Host SQLite tests cover database reopening and migration failure; widget tests cover representative interaction, localization, semantics, keyboard, and responsive scenarios. These checks do not establish platform or visual completeness.
+
+## Task 9: Selected-day pending and done counts
+**What to build:** Persist completion status and display selected-day pending and done counts scoped to active filters.
+**Files likely affected:** app/lib/data, app/lib/domain, app/lib/ui/calendar, app/test, app/README.md.
+**Acceptance criteria:** Existing entries become pending without data loss; filtered counts reflect stored status and selected date; unavailable storage shows no counts.
+**Dependencies:** Tasks 1–3.
+- [x] Write failing migration and repository tests for status defaults, constraints, upgrade preservation and reading done entries.
+- [x] Add a non-destructive numbered migration and expose status through the repository; verify tests.
+- [x] Write failing widget tests for selected-day, cadence and participant counts, empty data and unavailable storage.
+- [x] Implement localized pending and done counts and verify the tests.
+- [ ] Complete device accessibility and matching-viewport visual verification; automated label, 48-pixel target and layout checks pass.
+
+## Assumptions to review
+1. Assumption: Entries are local materialized occurrences; recurrence expansion and synchronization are later work. — Impact: HIGH
+   Assumption answer: Yes.
+2. Assumption: One cadence and at most one participant combine with AND; All Tasks resets cadence and tapping an active participant clears it. — Impact: MEDIUM
+   Assumption answer: Yes, keep these filter combination and reset rules. Task creation is out of scope.
+3. Assumption: Native storage uses an application-support directory and web storage is unavailable. — Impact: HIGH
+   Assumption answer: Yes.
+4. Assumption: Single local user, with no remote authorization or encryption in this issue. — Impact: HIGH
+   Assumption answer: Yes.
+5. Assumption: Calendar entries have id, title, local date, cadence and participant links; participants have id and display name. — Impact: MEDIUM
+   Assumption answer: Yes.
+6. Assumption: Weeks begin Sunday in both supported locales. — Impact: LOW
+   Assumption answer: Yes.
+7. Assumption: Explicitly requested example entries are installed on existing and new databases, including release builds, and are labeled as examples. — Impact: HIGH
+   Assumption answer: Yes.
+8. Decision: Keep color-distinguished circular solo and collaborative indicators, with category names exposed to assistive technology; retain the All Tasks label. The user prefers both choices.
+9. Decision: Existing entries become pending; pending and done counts apply to the selected day and current cadence and participant filters. Completion actions remain out of scope.
+
+## Review checkpoint
+Verify assumptions, screen against Stitch, data semantics and every acceptance criterion before handoff.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:app/ui/core/theme/activity_theme.dart';
+import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_dimensions.dart';
 
 class ActivityCard extends StatelessWidget {
   const ActivityCard({

@@ -5,6 +5,11 @@ individually or with companions.
 
 This project follows Spec-Driven Development (SDD).
 
+## Temporary Files
+
+Place project-related temporary files, including screenshots and working
+artifacts, in the repository's `.scratches/` directory so they are easy to find.
+
 ## Technologies
 
 - Dart
@@ -41,6 +46,10 @@ architectural decisions, also read:
 Before writing or modifying production code, read:
 
 - `docs/spec/project/conventions.md`
+
+Before creating a commit, read the commit message conventions in
+`docs/spec/project/conventions.md` and inspect the current branch name for an
+issue number to include in the commit subject.
 
 Before creating or modifying Flutter UI, read and follow:
 
