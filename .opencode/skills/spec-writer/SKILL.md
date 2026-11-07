@@ -7,7 +7,7 @@ description: Takes a vague feature request and generates a structured spec, tech
 
 You turn vague feature requests into structured specs, technical plans, and task breakdowns that any coding agent can implement without guessing.
 
-You generate first, flag assumptions inline. Every decision you make that the user didn't specify gets marked with `[ASSUMPTION: ...]`. The user reviews and corrects assumptions. This is faster than Q&A and surfaces decisions that would otherwise be invisible.
+Generate one document at a time, flagging assumptions inline, and obtain explicit user approval before creating the next document. Every decision you make that the user didn't specify gets marked with `[ASSUMPTION: ...]`. The user reviews and corrects assumptions before the workflow advances.
 
 ---
 
@@ -24,13 +24,25 @@ Examples:
 
 If the user pastes a ticket, a PRD fragment, or a rough description — treat it as the feature request and proceed.
 
-The output format is compatible with [GitHub Spec Kit](https://github.com/github/spec-kit) and [OpenSpec](https://github.com/Fission-AI/OpenSpec). Always create the completed feature documentation in a dedicated folder within `docs/spec/features/`; do not save it to `specs/`, `docs/specs/`, `.specify/` or `openspec/changes/`. Name the folder using the format `FEATURE N - very short feature description` (for example, `FEATURE 1 - password reset`). Use only letters, numbers, spaces, and hyphens so the repository can be checked out on Windows. Create exactly three files in that folder: `spec.md` containing SECTION 1: SPEC, `plan.md` containing SECTION 2: PLAN, and `tasks.md` containing SECTION 3: TASKS.
+The output format is compatible with [GitHub Spec Kit](https://github.com/github/spec-kit) and [OpenSpec](https://github.com/Fission-AI/OpenSpec). Always create the completed feature documentation in a dedicated folder within `docs/spec/features/`; do not save it to `specs/`, `docs/specs/`, `.specify/` or `openspec/changes/`. Name the folder using the format `FEATURE N - very short feature description` (for example, `FEATURE 1 - password reset`). Use only letters, numbers, spaces, and hyphens so the repository can be checked out on Windows. The completed workflow produces exactly three files in that folder: `spec.md` containing SECTION 1: SPEC, `plan.md` containing SECTION 2: PLAN, and `tasks.md` containing SECTION 3: TASKS. Create them incrementally as their approval gates are satisfied; do not create downstream placeholders.
+
+---
+
+## Document approval gates
+
+1. Create or revise `spec.md`, present it with its assumptions for review, and ask for explicit approval to proceed to `plan.md`. Stop at this gate until the user approves the current spec.
+2. After spec approval, create or revise `plan.md` from the approved spec, present it with its assumptions for review, and ask for explicit approval to proceed to `tasks.md`. Stop at this gate until the user approves the current plan.
+3. After plan approval, create or revise `tasks.md` from the approved spec and plan, preserving the required review checkpoint and assumption answers.
+
+A request to generate the feature documentation does not itself approve documents that have not yet been reviewed. Silence, elapsed time, requested corrections, and answers to individual assumptions do not count as document approval. Apply requested corrections to the current document and present the revised version for approval before advancing. Keep downstream documents unchanged while approval is pending, including when revising an existing feature. If an approved upstream document changes, obtain approval of its revised version before updating downstream documents.
+
+When requesting approval, link the document and this skill, quote the applicable gate, and explain that this workflow requires approval before the next document can be created or revised. Carry reviewed assumption decisions into subsequent documents; document approval alone does not resolve assumptions left pending.
 
 ---
 
 ## Output format
 
-Produce three sections in order. Do not skip any section. Do not merge them. Write each section to its own file in the feature's dedicated folder under `docs/spec/features/`: `spec.md`, `plan.md`, `tasks.md`.
+Produce three sections in order across the approval gates above. Do not skip any section. Do not merge them. Write each section to its own file in the feature's dedicated folder under `docs/spec/features/`: `spec.md`, `plan.md`, `tasks.md`.
 
 ---
 
@@ -159,7 +171,7 @@ TASKS MUST follow Red-Green-Refactor in this order: failing test → minimum imp
 **Input:**
 `/spec-writer Let users register an expense with amount, account, and date`
 
-**Output (abbreviated):**
+**Output (abbreviated; each subsequent document is created only after approval of the preceding document):**
 
 ### SPEC (`spec.md`)
 
