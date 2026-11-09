@@ -93,31 +93,35 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(
-      tester.getBottomLeft(find.byType(SegmentedButton<bool>)).dy,
+      tester
+          .getBottomLeft(find.byKey(const ValueKey('calendar-mode-toggle')))
+          .dy,
       lessThanOrEqualTo(tester.getTopLeft(find.byType(Card).first).dy),
     );
   });
 
-  testWidgets('places Today alongside the view selector', (tester) async {
+  testWidgets('places Create task alongside the view selector', (tester) async {
     await tester.pumpWidget(
       const ProviderScope(child: MaterialApp(home: CalendarView())),
     );
-    final today = tester.getCenter(
-      find.widgetWithText(OutlinedButton, 'Today'),
+    final create = tester.getCenter(
+      find.widgetWithText(OutlinedButton, 'Create task'),
     );
-    final toggle = tester.getCenter(find.byType(SegmentedButton<bool>));
-    expect(today.dy, toggle.dy);
-    expect(today.dx, lessThan(toggle.dx));
+    final toggle = tester.getCenter(
+      find.byKey(const ValueKey('calendar-mode-toggle')),
+    );
+    expect(create.dy, toggle.dy);
+    expect(create.dx, lessThan(toggle.dx));
   });
 
-  testWidgets('Today button includes a sun icon', (tester) async {
+  testWidgets('header creation button includes an add icon', (tester) async {
     await tester.pumpWidget(
       const ProviderScope(child: MaterialApp(home: CalendarView())),
     );
     expect(
       find.descendant(
-        of: find.widgetWithText(OutlinedButton, 'Today'),
-        matching: find.byIcon(Icons.wb_sunny_outlined),
+        of: find.widgetWithText(OutlinedButton, 'Create task'),
+        matching: find.byIcon(Icons.add),
       ),
       findsOneWidget,
     );
@@ -452,12 +456,82 @@ void main() {
     );
     expect(find.text('Month'), findsOneWidget);
     expect(find.text('Week'), findsOneWidget);
+    final toggle = find.byType(SegmentedButton<bool>);
+    expect(toggle, findsOneWidget);
+    SegmentedButton<bool> control() =>
+        tester.widget<SegmentedButton<bool>>(toggle);
+    final rail = find.byKey(const ValueKey('calendar-mode-rail'));
+    expect(tester.getSize(toggle).height, greaterThanOrEqualTo(48));
+    expect(
+      tester.getSize(rail).height,
+      lessThan(tester.getSize(toggle).height),
+    );
+    expect(
+      tester.getSize(rail).height - tester.getSize(find.text('Month')).height,
+      closeTo(12, 0.01),
+    );
+    expect(control().selected, {false});
+    expect(control().showSelectedIcon, false);
+    for (final state in [
+      WidgetState.pressed,
+      WidgetState.hovered,
+      WidgetState.focused,
+    ]) {
+      expect(
+        control().style?.overlayColor?.resolve({state}),
+        Colors.transparent,
+      );
+    }
+    expect(control().style?.splashFactory, NoSplash.splashFactory);
+    expect(
+      control().style?.textStyle?.resolve({WidgetState.focused})?.decoration,
+      TextDecoration.underline,
+    );
+    final indicator = find.byKey(const ValueKey('calendar-mode-indicator'));
+    final start = tester.getTopLeft(indicator).dx;
     await tester.tap(find.text('Week'));
     await tester.pump();
     expect(find.byTooltip('Next week'), findsOneWidget);
+    expect(control().selected, {true});
+    await tester.pump(const Duration(milliseconds: 80));
+    final halfway = tester.getTopLeft(indicator).dx;
+    expect(halfway, greaterThan(start));
+    await tester.pumpAndSettle();
+    final end = tester.getTopLeft(indicator).dx;
+    expect(end, greaterThan(halfway));
+    await tester.tap(find.text('Month'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    expect(tester.getTopLeft(indicator).dx, lessThan(end));
+    expect(tester.getTopLeft(indicator).dx, greaterThan(start));
+    await tester.pumpAndSettle();
+    expect(control().selected, {false});
+    expect(tester.getTopLeft(indicator).dx, closeTo(start, 0.01));
   });
 
-  testWidgets('navigates leap month and week, then returns to today', (
+  testWidgets('calendar mode respects reduced motion', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(disableAnimations: true),
+            child: child!,
+          ),
+          home: const CalendarView(),
+        ),
+      ),
+    );
+    final indicator = find.byKey(const ValueKey('calendar-mode-indicator'));
+    final start = tester.getTopLeft(indicator).dx;
+    await tester.tap(find.text('Week'));
+    await tester.pump();
+    final end = tester.getTopLeft(indicator).dx;
+    expect(end, greaterThan(start));
+    await tester.pump(const Duration(milliseconds: 80));
+    expect(tester.getTopLeft(indicator).dx, end);
+  });
+
+  testWidgets('navigates leap month and week while preserving selection', (
     tester,
   ) async {
     final model = CalendarViewModel(
@@ -504,10 +578,8 @@ void main() {
       tester.widget<Semantics>(selectedDate()).properties.label,
       contains('March 7, 2024'),
     );
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Today'));
-    await tester.pumpAndSettle();
-    final now = DateTime.now();
-    expect(model.calendar.selected, DateTime(now.year, now.month, now.day));
+    expect(find.widgetWithText(OutlinedButton, 'Today'), findsNothing);
+    expect(model.calendar.selected, DateTime(2024, 3, 7));
   });
 
   testWidgets('shows a helpful empty state for a day without entries', (
@@ -796,7 +868,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Mês'), findsOneWidget);
     expect(find.text('Semana'), findsOneWidget);
-    expect(find.widgetWithText(OutlinedButton, 'Hoje'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, 'Criar tarefa'), findsOneWidget);
     expect(find.byTooltip('Abrir calendário'), findsOneWidget);
     expect(find.byTooltip('Abrir notificações'), findsOneWidget);
     expect(find.text('Pessoas'), findsOneWidget);

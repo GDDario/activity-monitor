@@ -1,187 +1,176 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:app/app/dependencies/task_dependencies.dart';
 import 'package:app/ui/core/theme/activity_colors.dart';
-import 'package:app/ui/core/theme/activity_dimensions.dart';
-import 'package:app/ui/core/widgets/activity_card.dart';
 import 'package:app/ui/core/widgets/application_shell.dart';
 import 'package:app/ui/core/widgets/screen_title_bar.dart';
-import 'package:app/ui/core/widgets/section_header.dart';
+import 'package:app/ui/dashboard/view_models/today_view_model.dart';
+import 'package:app/ui/tasks/task_localizations.dart';
+import 'package:app/ui/tasks/views/open_task_editor.dart';
+import 'package:app/ui/tasks/widgets/task_card.dart';
+import 'package:app/ui/tasks/widgets/task_undo_banner.dart';
 
-class DashboardView extends StatelessWidget {
+class DashboardView extends ConsumerWidget {
   const DashboardView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const ApplicationShell(
-      destination: AppDestination.today,
-      child: _DashboardContent(),
-    );
-  }
-}
-
-class _DashboardContent extends StatelessWidget {
-  const _DashboardContent();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        ActivitySpace.md,
-        ActivitySpace.lg,
-        ActivitySpace.md,
-        112,
-      ),
-      children: const [
-        ScreenTitleBar(
-          title: 'Good morning',
-          phrase: 'Today · Move with intention',
-        ),
-        SizedBox(height: ActivitySpace.md),
-        _FilterBar(),
-        SizedBox(height: ActivitySpace.lg),
-        _ProgressCard(),
-        SizedBox(height: ActivitySpace.xl),
-        SectionHeader(title: 'Morning focus', detail: '2 activities'),
-        SizedBox(height: ActivitySpace.md),
-        ActivityCard(
-          title: 'Read a chapter',
-          description:
-              'Continue the book you chose for this week’s reading rhythm.',
-          timeLabel: '10:00 AM',
-          statusLabel: 'High priority',
-        ),
-        SizedBox(height: ActivitySpace.md),
-        ActivityCard(
-          title: 'Plan the shared workout',
-          description:
-              'Confirm the routine and invite the people joining today.',
-          timeLabel: '11:30 AM',
-          statusLabel: 'With people',
-          isComplete: true,
-        ),
-        SizedBox(height: ActivitySpace.xl),
-        SectionHeader(title: 'Later today', detail: '2 activities'),
-        SizedBox(height: ActivitySpace.md),
-        ActivityCard(
-          title: 'Focus session',
-          description: 'A quiet 25-minute block for your next meaningful task.',
-          timeLabel: '2:30 PM',
-          statusLabel: 'Focus',
-        ),
-      ],
-    );
-  }
-}
-
-class _FilterBar extends StatelessWidget {
-  const _FilterBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _DashboardFilterChip(
-            selected: true,
-            label: 'All activities',
-            icon: Icons.view_agenda_outlined,
-            onSelected: (_) {},
+  Widget build(BuildContext context, WidgetRef ref) {
+    final model = ref.watch(todayViewModelProvider);
+    final actions = ref.watch(taskActionsViewModelProvider);
+    final l = TaskLocalizations.of(context);
+    return ListenableBuilder(
+      listenable: model,
+      builder: (context, _) {
+        final state = model.state;
+        return ApplicationShell(
+          destination: AppDestination.today,
+          floatingActionButton: FloatingActionButton(
+            onPressed: state.isLoading || state.failure != null
+                ? null
+                : () => openTaskEditor(
+                    context,
+                    ref,
+                    TaskEditorRequest(date: model.today),
+                  ),
+            backgroundColor: ActivityColors.primary,
+            foregroundColor: Colors.white,
+            child: const Icon(Icons.add),
           ),
-          const SizedBox(width: ActivitySpace.sm),
-          _DashboardFilterChip(
-            selected: false,
-            label: 'Solo',
-            icon: Icons.person_outline,
-            onSelected: (_) {},
-          ),
-          const SizedBox(width: ActivitySpace.sm),
-          _DashboardFilterChip(
-            selected: false,
-            label: 'Shared',
-            icon: Icons.group_outlined,
-            onSelected: (_) {},
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DashboardFilterChip extends StatelessWidget {
-  const _DashboardFilterChip({
-    required this.selected,
-    required this.label,
-    required this.icon,
-    required this.onSelected,
-  });
-
-  final bool selected;
-  final String label;
-  final IconData icon;
-  final ValueChanged<bool> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    const foregroundColor = ActivityColors.ink;
-    return FilterChip(
-      selected: selected,
-      label: Text(label),
-      avatar: Icon(icon, size: 18, color: foregroundColor),
-      onSelected: onSelected,
-      showCheckmark: false,
-      labelStyle: Theme.of(context).textTheme.labelMedium
-          ?.copyWith(color: foregroundColor),
-    );
-  }
-}
-
-class _ProgressCard extends StatelessWidget {
-  const _ProgressCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(ActivitySpace.lg),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          child: Stack(
+            children: [
+              ListView(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 192),
                 children: [
-                  Text(
-                    'RHYTHM OF THE DAY',
-                    style: textTheme.labelMedium?.copyWith(
-                      color: ActivityColors.primary,
+                  ScreenTitleBar(
+                    title: l.text('todayTitle'),
+                    phrase: l.text('todayPhrase'),
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final filter in TodayFilter.values)
+                        FilterChip(
+                          label: Text(l.text(filter.name)),
+                          selected: state.filter == filter,
+                          selectedColor: ActivityColors.primary,
+                          backgroundColor: ActivityColors.surfaceMuted,
+                          labelStyle: TextStyle(
+                            color: state.filter == filter
+                                ? Colors.white
+                                : ActivityColors.mutedInk,
+                          ),
+                          showCheckmark: false,
+                          side: BorderSide(
+                            color: state.filter == filter
+                                ? ActivityColors.primary
+                                : ActivityColors.outline.withValues(alpha: .4),
+                          ),
+                          onSelected: (_) => model.setFilter(filter),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  if (state.isLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else if (state.failure case final failure?) ...[
+                    Text(l.failure(failure)),
+                    TextButton.icon(
+                      onPressed: model.load,
+                      icon: const Icon(Icons.refresh),
+                      label: Text(l.text('retry')),
                     ),
-                  ),
-                  const SizedBox(height: ActivitySpace.sm),
-                  Text('4 of 7 completed', style: textTheme.headlineMedium),
-                  const SizedBox(height: ActivitySpace.sm),
-                  Text(
-                    'Steady progress with deliberate pacing. Three activities remain.',
-                    style: textTheme.bodySmall,
-                  ),
+                  ] else ...[
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: ActivityColors.outline),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l.text('progress').toUpperCase(),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelMedium,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    l.counts(
+                                      model.pendingCount,
+                                      model.doneCount,
+                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (model.visible.isNotEmpty)
+                              SizedBox(
+                                width: 56,
+                                height: 56,
+                                child: Semantics(
+                                  label: l.counts(
+                                    model.pendingCount,
+                                    model.doneCount,
+                                  ),
+                                  child: CircularProgressIndicator(
+                                    value:
+                                        model.doneCount / model.visible.length,
+                                    strokeWidth: 6,
+                                    strokeCap: StrokeCap.round,
+                                    backgroundColor:
+                                        ActivityColors.surfaceStrong,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    if (model.visible.isEmpty) Text(l.text('empty')),
+                    for (final aggregate in model.visible)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: TaskCard(
+                          aggregate: aggregate,
+                          actions: actions,
+                          streak: state.streaks[aggregate.task.id],
+                          onEdit: () => openTaskEditor(
+                            context,
+                            ref,
+                            TaskEditorRequest(
+                              date: aggregate.occurrence.effectiveDate,
+                              taskId: aggregate.task.id,
+                              occurrenceId: aggregate.occurrence.id,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ],
               ),
-            ),
-            const SizedBox(width: ActivitySpace.md),
-            SizedBox(
-              width: 72,
-              height: 72,
-              child: CircularProgressIndicator(
-                value: 4 / 7,
-                strokeWidth: 7,
-                strokeCap: StrokeCap.round,
-                backgroundColor: ActivityColors.surfaceStrong,
-                color: ActivityColors.primaryContainer,
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 88,
+                child: TaskUndoBanner(model: actions),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -32,12 +32,14 @@ class ApplicationShell extends StatelessWidget {
     super.key,
     required this.destination,
     required this.child,
+    this.floatingActionButton,
   });
 
   static const _wideLayoutBreakpoint = 840.0;
 
   final AppDestination destination;
   final Widget child;
+  final Widget? floatingActionButton;
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +47,7 @@ class ApplicationShell extends StatelessWidget {
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= _wideLayoutBreakpoint;
         return Scaffold(
+          floatingActionButton: floatingActionButton,
           body: SafeArea(
             child: Row(
               children: [

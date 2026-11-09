@@ -8,6 +8,8 @@ import 'package:app/data/services/database/migrations.dart';
 import 'package:app/data/services/database/migrations/migration_0001_create_calendar_tables.dart';
 import 'package:app/data/services/database/migrations/migration_0002_seed_calendar_examples.dart';
 
+import 'helpers/task_migration_fixture.dart';
+
 void main() {
   test(
     'upgrades existing entries to pending and constrains completion status',
@@ -29,7 +31,7 @@ void main() {
       db.execute(
         "INSERT INTO calendar_entries (id, title, date, cadence) VALUES ('old', 'Existing', '2024-01-01', 'daily')",
       );
-      migrateDatabase(db);
+      migrateDatabase(db, migrations: historicalTaskMigrations());
       expect(
         db
             .select("SELECT completed FROM calendar_entries WHERE id = 'old'")
@@ -43,6 +45,7 @@ void main() {
         ),
         throwsA(isA<SqliteException>()),
       );
+      migrateDatabase(db);
       final data = await CalendarDatabase(() async => db).load();
       expect(
         data.entries.singleWhere((entry) => entry.id == 'old').isDone,

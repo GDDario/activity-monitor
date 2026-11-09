@@ -1,17 +1,18 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:uuid/uuid.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 import 'package:app/data/services/calendar_database.dart';
-import 'package:app/data/services/database/app_database.dart';
+import 'package:app/app/dependencies/database_dependencies.dart';
+import 'package:app/app/dependencies/task_dependencies.dart';
+import 'package:app/domain/value_objects/local_date.dart';
+import 'package:app/domain/value_objects/local_date_range.dart';
+import 'package:app/ui/calendar/view_models/calendar_state.dart';
 import 'package:app/data/repositories/calendar_repository.dart';
 import 'package:app/domain/models/calendar_data.dart';
 import 'package:app/ui/dashboard/views/dashboard_view.dart';
@@ -19,6 +20,8 @@ import 'package:app/ui/calendar/views/calendar_view.dart';
 import 'package:app/ui/calendar/view_models/calendar_view_model.dart';
 import 'package:app/ui/people/views/people_view.dart';
 import 'package:app/ui/profile/views/profile_view.dart';
+
+export 'database_dependencies.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -47,48 +50,71 @@ final httpClientProvider = Provider<Dio>((ref) {
   );
 });
 
-final uuidProvider = Provider<Uuid>((ref) => const Uuid());
+class CalendarRangeRequest {
+  LocalDateRange? value;
+}
 
-final databaseDirectoryProvider = Provider<Future<Directory> Function()>(
-  (ref) => getApplicationSupportDirectory,
-);
-
-final databaseInitializationProvider = FutureProvider<String>((ref) async {
-  try {
-    final directory = await ref.watch(databaseDirectoryProvider)();
-    await Directory(directory.path).create(recursive: true);
-    final path = '${directory.path}/activity_monitor.db';
-    await compute(initializeDatabaseAtPath, path);
-    return path;
-  } catch (error) {
-    debugPrint(
-      'Database initialization failed (${error.runtimeType}); calendar data is unavailable.',
-    );
-    rethrow;
-  }
-});
+final calendarRangeRequestProvider = Provider((ref) => CalendarRangeRequest());
 
 final calendarDataProvider = FutureProvider<CalendarData>((ref) async {
   final path = await ref.watch(databaseInitializationProvider.future);
-  return compute(_readCalendar, path);
+  final days = CalendarState(ref.read(taskClockProvider)()).visibleDays;
+  LocalDate local(DateTime d) => LocalDate(d.year, d.month, d.day);
+  final range =
+      ref.read(calendarRangeRequestProvider).value ??
+      LocalDateRange(local(days.first), local(days.last));
+  final result = await ref.read(ensureTaskRangeProvider)(range);
+  if (!result.isSuccess) throw StateError('Calendar data unavailable');
+  return compute(_readCalendar, (path, range));
 });
 
 final calendarViewModelProvider = Provider.autoDispose<CalendarViewModel>((
   ref,
 ) {
-  final future = ref.read(calendarDataProvider.future);
-  final model = CalendarViewModel(DateTime.now(), () => future);
+  late final CalendarViewModel model;
+  model = CalendarViewModel(
+    ref.read(taskClockProvider)(),
+    () {
+      final days = model.calendar.visibleDays;
+      LocalDate local(DateTime d) => LocalDate(d.year, d.month, d.day);
+      ref.read(calendarRangeRequestProvider).value = LocalDateRange(
+        local(days.first),
+        local(days.last),
+      );
+      ref.invalidate(calendarDataProvider);
+      return ref.read(calendarDataProvider.future);
+    },
+    reloadOnNavigation: true,
+    loadStreaks: (data) async {
+      final ids = data.entries
+          .map((e) => e.taskAggregate?.task.id)
+          .nonNulls
+          .toSet();
+      final now = ref.read(taskClockProvider)().toLocal();
+      final result = await ref.read(taskStreakLoaderProvider)(
+        ids,
+        LocalDate(now.year, now.month, now.day),
+      );
+      if (!result.isSuccess) {
+        throw StateError('Calendar streak data unavailable');
+      }
+      return {for (final e in result.value!.entries) e.key.value: e.value};
+    },
+  );
+  ref.listen(taskChangesProvider, (_, value) {
+    value.whenData((_) => unawaited(model.load()));
+  });
   ref.onDispose(model.dispose);
   unawaited(model.load());
   return model;
 });
 
-Future<CalendarData> _readCalendar(String path) async {
-  final database = sqlite3.open(path, mode: OpenMode.readWrite);
+Future<CalendarData> _readCalendar((String, LocalDateRange) input) async {
+  final database = sqlite3.open(input.$1, mode: OpenMode.readWrite);
   try {
     database.execute('PRAGMA foreign_keys = ON');
     return await CalendarRepository(CalendarDatabase(() async => database))
-        .load();
+        .load(range: input.$2);
   } finally {
     database.close();
   }

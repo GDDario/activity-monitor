@@ -5,6 +5,7 @@ import 'package:toastification/toastification.dart';
 
 import 'package:app/app/dependencies/app_dependencies.dart';
 import 'package:app/ui/core/theme/activity_theme.dart';
+import 'package:app/ui/tasks/task_localizations.dart';
 
 class ActivityMonitorApp extends ConsumerWidget {
   const ActivityMonitorApp({super.key});
@@ -18,7 +19,10 @@ class ActivityMonitorApp extends ConsumerWidget {
         debugShowCheckedModeBanner: false,
         theme: ActivityTheme.light(),
         routerConfig: ref.watch(appRouterProvider),
-        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        localizationsDelegates: const [
+          TaskLocalizationsDelegate(),
+          ...GlobalMaterialLocalizations.delegates,
+        ],
         supportedLocales: const [Locale('en', 'US'), Locale('pt', 'BR')],
       ),
     );

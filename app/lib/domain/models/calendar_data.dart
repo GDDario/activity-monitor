@@ -1,3 +1,5 @@
+import 'package:app/domain/models/task.dart';
+
 enum CalendarCadence { daily, weekly, oneTime }
 
 class CalendarEntry {
@@ -8,6 +10,7 @@ class CalendarEntry {
     required this.cadence,
     required this.participantIds,
     this.isDone = false,
+    this.taskAggregate,
   });
   final String id;
   final String title;
@@ -15,6 +18,7 @@ class CalendarEntry {
   final CalendarCadence cadence;
   final List<String> participantIds;
   final bool isDone;
+  final TaskAggregate? taskAggregate;
 }
 
 class CalendarParticipant {

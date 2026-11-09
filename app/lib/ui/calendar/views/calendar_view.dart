@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app/app/dependencies/app_dependencies.dart';
+import 'package:app/app/dependencies/task_dependencies.dart';
+import 'package:app/domain/value_objects/local_date.dart';
+import 'package:app/domain/value_objects/local_date_range.dart';
+import 'package:app/ui/tasks/task_localizations.dart';
+import 'package:app/ui/tasks/views/open_task_editor.dart';
+import 'package:app/ui/tasks/widgets/task_card.dart';
+import 'package:app/ui/tasks/widgets/task_undo_banner.dart';
 import 'package:app/domain/models/calendar_data.dart';
 import 'package:app/ui/calendar/view_models/calendar_view_model.dart';
 import 'package:app/ui/core/theme/activity_colors.dart';
@@ -16,415 +23,593 @@ class CalendarView extends ConsumerWidget {
     final model = ref.watch(calendarViewModelProvider);
     return ListenableBuilder(
       listenable: model,
-      builder: (context, _) => _buildCalendar(context, model),
+      builder: (context, _) => _buildCalendar(context, model, ref),
     );
   }
 
-  Widget _buildCalendar(BuildContext context, CalendarViewModel model) {
+  Widget _buildCalendar(
+    BuildContext context,
+    CalendarViewModel model,
+    WidgetRef ref,
+  ) {
+    final actions = ref.watch(taskActionsViewModelProvider);
+    final taskStrings = TaskLocalizations.of(context);
     final l = MaterialLocalizations.of(context);
     final pt = Localizations.localeOf(context).languageCode == 'pt';
     String tr(String en, String br) => pt ? br : en;
     final calendar = model.calendar;
     final days = calendar.visibleDays;
+    final visibleRange = LocalDateRange(
+      LocalDate(days.first.year, days.first.month, days.first.day),
+      LocalDate(days.last.year, days.last.month, days.last.day),
+    );
     final selectedEntries = calendar.selectedEntries;
     final doneCount = selectedEntries.where((entry) => entry.isDone).length;
     final pendingCount = selectedEntries.length - doneCount;
+    void createTask() => openTaskEditor(
+      context,
+      ref,
+      TaskEditorRequest(
+        range: visibleRange,
+        date: LocalDate(
+          calendar.selected.year,
+          calendar.selected.month,
+          calendar.selected.day,
+        ),
+      ),
+    );
+    final canCreate = !model.hasError && !model.isLoading;
     return ApplicationShell(
       destination: AppDestination.calendar,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 24, 16, 112),
+      floatingActionButton: FloatingActionButton(
+        onPressed: canCreate ? createTask : null,
+        backgroundColor: ActivityColors.primary,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
+      ),
+      child: Stack(
         children: [
-          ScreenTitleBar(
-            title: tr('Calendar', 'Calendário'),
-            phrase: tr(
-              'A gentler view ahead',
-              'Uma visão tranquila dos próximos dias',
-            ),
-          ),
-          const SizedBox(height: 24),
-          LayoutBuilder(
-            builder: (context, constraints) => SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: () => model.selectDate(DateTime.now()),
-                      icon: const Icon(Icons.wb_sunny_outlined),
-                      label: Text(tr('Today', 'Hoje')),
-                    ),
-                    const SizedBox(width: 12),
-                    SegmentedButton<bool>(
-                      segments: [
-                        ButtonSegment(
-                          value: false,
-                          label: Text(tr('Month', 'Mês')),
-                        ),
-                        ButtonSegment(
-                          value: true,
-                          label: Text(tr('Week', 'Semana')),
-                        ),
-                      ],
-                      selected: {calendar.weekMode},
-                      showSelectedIcon: false,
-                      style: ButtonStyle(
-                        visualDensity: VisualDensity.standard,
-                        minimumSize: const WidgetStatePropertyAll(Size(0, 48)),
-                        backgroundColor: WidgetStateProperty.resolveWith(
-                          (states) => states.contains(WidgetState.selected)
-                              ? ActivityColors.surface
-                              : ActivityColors.surfaceStrong,
-                        ),
-                        foregroundColor: WidgetStateProperty.resolveWith(
-                          (states) => states.contains(WidgetState.selected)
-                              ? ActivityColors.primary
-                              : ActivityColors.mutedInk,
-                        ),
-                        side: const WidgetStatePropertyAll(
-                          BorderSide(color: ActivityColors.outline),
-                        ),
-                      ),
-                      onSelectionChanged: (v) => model.setWeekMode(v.single),
-                    ),
-                  ],
+          ListView(
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 192),
+            children: [
+              ScreenTitleBar(
+                title: tr('Calendar', 'Calendário'),
+                phrase: tr(
+                  'A gentler view ahead',
+                  'Uma visão tranquila dos próximos dias',
                 ),
               ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(child: _MonthHeading(date: calendar.selected)),
-                      IconButton(
-                        tooltip: calendar.weekMode
-                            ? tr('Previous week', 'Semana anterior')
-                            : tr('Previous month', 'Mês anterior'),
-                        onPressed: () => model.move(-1),
-                        icon: const Icon(Icons.chevron_left),
-                      ),
-                      IconButton(
-                        tooltip: calendar.weekMode
-                            ? tr('Next week', 'Próxima semana')
-                            : tr('Next month', 'Próximo mês'),
-                        onPressed: () => model.move(1),
-                        icon: const Icon(Icons.chevron_right),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _CalendarGridViewport(
-                    selected: calendar.selected,
-                    weekMode: calendar.weekMode,
-                    child: Column(
+              const SizedBox(height: 16),
+              LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            for (final weekday in l.narrowWeekdays)
-                              Expanded(child: Center(child: Text(weekday))),
-                          ],
+                        OutlinedButton.icon(
+                          onPressed: canCreate ? createTask : null,
+                          icon: const Icon(Icons.add),
+                          label: Text(taskStrings.text('createTask')),
                         ),
-                        for (var row = 0; row < days.length; row += 7)
-                          Row(
-                            children: [
-                              for (final day in days.skip(row).take(7))
-                                Expanded(
-                                  child: Semantics(
-                                    button: true,
-                                    onTap: () => model.selectDate(day),
-                                    selected: DateUtils.isSameDay(
-                                      day,
-                                      calendar.selected,
-                                    ),
-                                    label: [
-                                      l.formatFullDate(day),
-                                      if (calendar.matchingEntries.any(
-                                        (e) =>
-                                            DateUtils.isSameDay(e.date, day) &&
-                                            e.participantIds.isEmpty,
-                                      ))
-                                        tr(
-                                          'Solo / Habit',
-                                          'Individual / Hábito',
+                        const SizedBox(width: 12),
+                        _CalendarModeToggle(
+                          weekMode: calendar.weekMode,
+                          monthLabel: tr('Month', 'Mês'),
+                          weekLabel: tr('Week', 'Semana'),
+                          onChanged: model.setWeekMode,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _MonthHeading(date: calendar.selected),
+                          ),
+                          IconButton(
+                            tooltip: calendar.weekMode
+                                ? tr('Previous week', 'Semana anterior')
+                                : tr('Previous month', 'Mês anterior'),
+                            onPressed: () => model.move(-1),
+                            icon: const Icon(Icons.chevron_left),
+                          ),
+                          IconButton(
+                            tooltip: calendar.weekMode
+                                ? tr('Next week', 'Próxima semana')
+                                : tr('Next month', 'Próximo mês'),
+                            onPressed: () => model.move(1),
+                            icon: const Icon(Icons.chevron_right),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _CalendarGridViewport(
+                        selected: calendar.selected,
+                        weekMode: calendar.weekMode,
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                for (final weekday in l.narrowWeekdays)
+                                  Expanded(child: Center(child: Text(weekday))),
+                              ],
+                            ),
+                            for (var row = 0; row < days.length; row += 7)
+                              Row(
+                                children: [
+                                  for (final day in days.skip(row).take(7))
+                                    Expanded(
+                                      child: Semantics(
+                                        button: true,
+                                        onTap: () => model.selectDate(day),
+                                        selected: DateUtils.isSameDay(
+                                          day,
+                                          calendar.selected,
                                         ),
-                                      if (calendar.matchingEntries.any(
-                                        (e) =>
-                                            DateUtils.isSameDay(e.date, day) &&
-                                            e.participantIds.isNotEmpty,
-                                      ))
-                                        tr('Collaborative', 'Colaborativo'),
-                                      if (calendar.matchingEntries.any(
-                                        (e) =>
-                                            DateUtils.isSameDay(e.date, day) &&
-                                            e.cadence !=
-                                                CalendarCadence.oneTime,
-                                      ))
-                                        tr('Cadence active', 'Cadência ativa'),
-                                    ].join(', '),
-                                    child: ExcludeSemantics(
-                                      child: TextButton(
-                                        onPressed: () => model.selectDate(day),
-                                        style: TextButton.styleFrom(
-                                          padding: EdgeInsets.zero,
-                                          foregroundColor:
-                                              day.month ==
-                                                  calendar.selected.month
-                                              ? ActivityColors.ink
-                                              : Theme.of(context).disabledColor,
-                                        ),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Container(
-                                              constraints: const BoxConstraints(
-                                                minWidth: 32,
-                                                minHeight: 32,
-                                              ),
-                                              padding: const EdgeInsets.all(6),
-                                              decoration:
-                                                  DateUtils.isSameDay(
-                                                    day,
-                                                    calendar.selected,
-                                                  )
-                                                  ? const BoxDecoration(
-                                                      color: ActivityColors
-                                                          .primary,
-                                                      shape: BoxShape.circle,
-                                                    )
-                                                  : null,
-                                              child: Center(
-                                                child: Text(
-                                                  '${day.day}',
-                                                  style:
+                                        label: [
+                                          l.formatFullDate(day),
+                                          if (calendar.matchingEntries.any(
+                                            (e) =>
+                                                DateUtils.isSameDay(
+                                                  e.date,
+                                                  day,
+                                                ) &&
+                                                e.participantIds.isEmpty,
+                                          ))
+                                            tr(
+                                              'Solo / Habit',
+                                              'Individual / Hábito',
+                                            ),
+                                          if (calendar.matchingEntries.any(
+                                            (e) =>
+                                                DateUtils.isSameDay(
+                                                  e.date,
+                                                  day,
+                                                ) &&
+                                                e.participantIds.isNotEmpty,
+                                          ))
+                                            tr('Collaborative', 'Colaborativo'),
+                                          if (calendar.matchingEntries.any(
+                                            (e) =>
+                                                DateUtils.isSameDay(
+                                                  e.date,
+                                                  day,
+                                                ) &&
+                                                e.cadence !=
+                                                    CalendarCadence.oneTime,
+                                          ))
+                                            tr(
+                                              'Cadence active',
+                                              'Cadência ativa',
+                                            ),
+                                        ].join(', '),
+                                        child: ExcludeSemantics(
+                                          child: TextButton(
+                                            onPressed: () =>
+                                                model.selectDate(day),
+                                            style: TextButton.styleFrom(
+                                              padding: EdgeInsets.zero,
+                                              foregroundColor:
+                                                  day.month ==
+                                                      calendar.selected.month
+                                                  ? ActivityColors.ink
+                                                  : Theme.of(context)
+                                                        .disabledColor,
+                                            ),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Container(
+                                                  constraints:
+                                                      const BoxConstraints(
+                                                        minWidth: 32,
+                                                        minHeight: 32,
+                                                      ),
+                                                  padding: const EdgeInsets.all(
+                                                    6,
+                                                  ),
+                                                  decoration:
                                                       DateUtils.isSameDay(
                                                         day,
                                                         calendar.selected,
                                                       )
-                                                      ? const TextStyle(
-                                                          color: Colors.white,
-                                                          fontWeight:
-                                                              FontWeight.bold,
+                                                      ? const BoxDecoration(
+                                                          color: ActivityColors
+                                                              .primary,
+                                                          shape:
+                                                              BoxShape.circle,
                                                         )
                                                       : null,
+                                                  child: Center(
+                                                    child: Text(
+                                                      '${day.day}',
+                                                      style:
+                                                          DateUtils.isSameDay(
+                                                            day,
+                                                            calendar.selected,
+                                                          )
+                                                          ? const TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            )
+                                                          : null,
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
-                                            ),
-                                            if (DateUtils.isSameDay(
-                                                  day,
-                                                  calendar.selected,
-                                                ) &&
-                                                calendar.matchingEntries.any(
-                                                  (entry) =>
-                                                      DateUtils.isSameDay(
-                                                        entry.date,
-                                                        day,
+                                                if (DateUtils.isSameDay(
+                                                      day,
+                                                      calendar.selected,
+                                                    ) &&
+                                                    calendar.matchingEntries.any(
+                                                      (entry) =>
+                                                          DateUtils.isSameDay(
+                                                            entry.date,
+                                                            day,
+                                                          ),
+                                                    ))
+                                                  const SizedBox(height: 4),
+                                                Wrap(
+                                                  alignment:
+                                                      WrapAlignment.center,
+                                                  spacing: 1,
+                                                  children: [
+                                                    if (calendar.matchingEntries
+                                                        .any(
+                                                          (e) =>
+                                                              DateUtils.isSameDay(
+                                                                e.date,
+                                                                day,
+                                                              ) &&
+                                                              e
+                                                                  .participantIds
+                                                                  .isEmpty,
+                                                        ))
+                                                      _CalendarIndicator.solo(
+                                                        selected:
+                                                            DateUtils.isSameDay(
+                                                              day,
+                                                              calendar.selected,
+                                                            ),
                                                       ),
-                                                ))
-                                              const SizedBox(height: 4),
-                                            Wrap(
-                                              alignment: WrapAlignment.center,
-                                              spacing: 1,
-                                              children: [
-                                                if (calendar.matchingEntries
-                                                    .any(
-                                                      (e) =>
-                                                          DateUtils.isSameDay(
-                                                            e.date,
-                                                            day,
-                                                          ) &&
-                                                          e
-                                                              .participantIds
-                                                              .isEmpty,
-                                                    ))
-                                                  _CalendarIndicator.solo(
-                                                    selected:
-                                                        DateUtils.isSameDay(
-                                                          day,
-                                                          calendar.selected,
-                                                        ),
-                                                  ),
-                                                if (calendar.matchingEntries
-                                                    .any(
-                                                      (e) =>
-                                                          DateUtils.isSameDay(
-                                                            e.date,
-                                                            day,
-                                                          ) &&
-                                                          e
-                                                              .participantIds
-                                                              .isNotEmpty,
-                                                    ))
-                                                  _CalendarIndicator.collaborative(
-                                                    selected:
-                                                        DateUtils.isSameDay(
-                                                          day,
-                                                          calendar.selected,
-                                                        ),
-                                                  ),
-                                                if (calendar.matchingEntries
-                                                    .any(
-                                                      (e) =>
-                                                          DateUtils.isSameDay(
-                                                            e.date,
-                                                            day,
-                                                          ) &&
-                                                          e.cadence !=
-                                                              CalendarCadence
-                                                                  .oneTime,
-                                                    ))
-                                                  _CalendarIndicator.cadence(
-                                                    selected:
-                                                        DateUtils.isSameDay(
-                                                          day,
-                                                          calendar.selected,
-                                                        ),
-                                                  ),
+                                                    if (calendar.matchingEntries
+                                                        .any(
+                                                          (e) =>
+                                                              DateUtils.isSameDay(
+                                                                e.date,
+                                                                day,
+                                                              ) &&
+                                                              e
+                                                                  .participantIds
+                                                                  .isNotEmpty,
+                                                        ))
+                                                      _CalendarIndicator.collaborative(
+                                                        selected:
+                                                            DateUtils.isSameDay(
+                                                              day,
+                                                              calendar.selected,
+                                                            ),
+                                                      ),
+                                                    if (calendar.matchingEntries
+                                                        .any(
+                                                          (e) =>
+                                                              DateUtils.isSameDay(
+                                                                e.date,
+                                                                day,
+                                                              ) &&
+                                                              e.cadence !=
+                                                                  CalendarCadence
+                                                                      .oneTime,
+                                                        ))
+                                                      _CalendarIndicator.cadence(
+                                                        selected:
+                                                            DateUtils.isSameDay(
+                                                              day,
+                                                              calendar.selected,
+                                                            ),
+                                                      ),
+                                                  ],
+                                                ),
                                               ],
                                             ),
-                                          ],
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                            ],
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 8,
+                        children: [
+                          _LegendItem(
+                            indicator: const _CalendarIndicator.solo(),
+                            label: tr('Solo / Habit', 'Individual / Hábito'),
                           ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 4,
-                    runSpacing: 8,
-                    children: [
-                      _LegendItem(
-                        indicator: const _CalendarIndicator.solo(),
-                        label: tr('Solo / Habit', 'Individual / Hábito'),
-                      ),
-                      _LegendItem(
-                        indicator: const _CalendarIndicator.collaborative(),
-                        label: tr('Collaborative', 'Colaborativo'),
-                      ),
-                      _LegendItem(
-                        indicator: const _CalendarIndicator.cadence(),
-                        label: tr('Cadence active', 'Cadência ativa'),
-                        color: ActivityColors.primary,
+                          _LegendItem(
+                            indicator: const _CalendarIndicator.collaborative(),
+                            label: tr('Collaborative', 'Colaborativo'),
+                          ),
+                          _LegendItem(
+                            indicator: const _CalendarIndicator.cadence(),
+                            label: tr('Cadence active', 'Cadência ativa'),
+                            color: ActivityColors.primary,
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (model.isLoading)
+                Text(tr('Loading calendar…', 'Carregando calendário…'))
+              else if (model.hasError)
+                Text(
+                  tr(
+                    'Calendar data is currently unavailable.',
+                    'Os dados do calendário estão indisponíveis no momento.',
+                  ),
+                )
+              else ...[
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (final item in <(CalendarCadence?, String)>[
+                        (null, tr('All Tasks', 'Todas as tarefas')),
+                        (
+                          CalendarCadence.daily,
+                          tr('Daily Habits', 'Hábitos diários'),
+                        ),
+                        (CalendarCadence.weekly, tr('Weekly', 'Semanal')),
+                        (CalendarCadence.oneTime, tr('One-Time', 'Uma vez')),
+                      ])
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: FilterChip(
+                            label: Text(item.$2),
+                            selected: calendar.cadence == item.$1,
+                            selectedColor: ActivityColors.primary,
+                            backgroundColor: ActivityColors.surfaceMuted,
+                            labelStyle: TextStyle(
+                              color: calendar.cadence == item.$1
+                                  ? Colors.white
+                                  : ActivityColors.mutedInk,
+                            ),
+                            showCheckmark: false,
+                            side: BorderSide(
+                              color: calendar.cadence == item.$1
+                                  ? ActivityColors.primary
+                                  : ActivityColors.outline.withValues(
+                                      alpha: .4,
+                                    ),
+                            ),
+                            onSelected: (_) => model.setCadence(item.$1),
+                          ),
+                        ),
+                      for (final person in calendar.data!.participants)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: FilterChip(
+                            label: Text(person.name),
+                            selected: calendar.participantId == person.id,
+                            selectedColor: ActivityColors.primary,
+                            backgroundColor: ActivityColors.surfaceMuted,
+                            labelStyle: TextStyle(
+                              color: calendar.participantId == person.id
+                                  ? Colors.white
+                                  : ActivityColors.mutedInk,
+                            ),
+                            showCheckmark: false,
+                            side: BorderSide(
+                              color: calendar.participantId == person.id
+                                  ? ActivityColors.primary
+                                  : ActivityColors.outline.withValues(
+                                      alpha: .4,
+                                    ),
+                            ),
+                            onSelected: (_) =>
+                                model.toggleParticipant(person.id),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  tr('Selected agenda', 'Agenda selecionada'),
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                Text(
+                  l.formatFullDate(calendar.selected),
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                Text(
+                  pt
+                      ? '$pendingCount pendentes · $doneCount concluídas'
+                      : '$pendingCount pending · $doneCount done',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                for (final entry in selectedEntries)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: entry.taskAggregate != null
+                        ? TaskCard(
+                            aggregate: entry.taskAggregate!,
+                            actions: actions,
+                            streak: model
+                                .streaks[entry.taskAggregate!.task.id.value],
+                            onEdit: () => openTaskEditor(
+                              context,
+                              ref,
+                              TaskEditorRequest(
+                                range: visibleRange,
+                                date: entry
+                                    .taskAggregate!
+                                    .occurrence
+                                    .effectiveDate,
+                                taskId: entry.taskAggregate!.task.id,
+                                occurrenceId:
+                                    entry.taskAggregate!.occurrence.id,
+                              ),
+                            ),
+                          )
+                        : _CalendarEntryCard(
+                            entry: entry,
+                            participants: calendar.data!.participants,
+                          ),
+                  ),
+                if (selectedEntries.isEmpty)
+                  Text(
+                    tr(
+                      'No entries for this day and these filters.',
+                      'Nenhuma atividade para este dia e filtros.',
+                    ),
+                  ),
+              ],
+            ],
+          ),
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 88,
+            child: TaskUndoBanner(model: actions),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CalendarModeToggle extends StatelessWidget {
+  const _CalendarModeToggle({
+    required this.weekMode,
+    required this.monthLabel,
+    required this.weekLabel,
+    required this.onChanged,
+  });
+
+  final bool weekMode;
+  final String monthLabel;
+  final String weekLabel;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final labelStyle = Theme.of(context).textTheme.labelLarge!;
+    final labelHeight =
+        MediaQuery.textScalerOf(context).scale(labelStyle.fontSize!) *
+        (labelStyle.height ?? 1);
+    return Stack(
+      key: const ValueKey('calendar-mode-toggle'),
+      alignment: Alignment.center,
+      children: [
+        Positioned(
+          left: 0,
+          right: 0,
+          child: SizedBox(
+            height: labelHeight + 12,
+            child: DecoratedBox(
+              key: const ValueKey('calendar-mode-rail'),
+              decoration: ShapeDecoration(
+                color: ActivityColors.surfaceStrong,
+                shape: StadiumBorder(
+                  side: BorderSide(
+                    color: ActivityColors.outline.withValues(alpha: .3),
+                  ),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(2),
+                child: AnimatedAlign(
+                  duration: MediaQuery.disableAnimationsOf(context)
+                      ? Duration.zero
+                      : const Duration(milliseconds: 200),
+                  curve: Curves.easeInOutCubic,
+                  alignment: weekMode
+                      ? AlignmentDirectional.centerEnd
+                      : AlignmentDirectional.centerStart,
+                  child: FractionallySizedBox(
+                    widthFactor: .5,
+                    heightFactor: 1,
+                    child: DecoratedBox(
+                      key: const ValueKey('calendar-mode-indicator'),
+                      decoration: ShapeDecoration(
+                        color: ActivityColors.surface,
+                        shape: const StadiumBorder(),
+                        shadows: [
+                          BoxShadow(
+                            color: ActivityColors.ink.withValues(alpha: .12),
+                            blurRadius: 2,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          if (model.isLoading)
-            Text(tr('Loading calendar…', 'Carregando calendário…'))
-          else if (model.hasError)
-            Text(
-              tr(
-                'Calendar data is currently unavailable.',
-                'Os dados do calendário estão indisponíveis no momento.',
-              ),
-            )
-          else ...[
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  for (final item in <(CalendarCadence?, String)>[
-                    (null, tr('All Tasks', 'Todas as tarefas')),
-                    (
-                      CalendarCadence.daily,
-                      tr('Daily Habits', 'Hábitos diários'),
-                    ),
-                    (CalendarCadence.weekly, tr('Weekly', 'Semanal')),
-                    (CalendarCadence.oneTime, tr('One-Time', 'Uma vez')),
-                  ])
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: FilterChip(
-                        label: Text(item.$2),
-                        selected: calendar.cadence == item.$1,
-                        selectedColor: ActivityColors.primary,
-                        backgroundColor: ActivityColors.surfaceMuted,
-                        labelStyle: TextStyle(
-                          color: calendar.cadence == item.$1
-                              ? Colors.white
-                              : ActivityColors.mutedInk,
-                        ),
-                        showCheckmark: false,
-                        side: BorderSide(
-                          color: calendar.cadence == item.$1
-                              ? ActivityColors.primary
-                              : ActivityColors.outline.withValues(alpha: .4),
-                        ),
-                        onSelected: (_) => model.setCadence(item.$1),
-                      ),
-                    ),
-                  for (final person in calendar.data!.participants)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: FilterChip(
-                        label: Text(person.name),
-                        selected: calendar.participantId == person.id,
-                        selectedColor: ActivityColors.primary,
-                        backgroundColor: ActivityColors.surfaceMuted,
-                        labelStyle: TextStyle(
-                          color: calendar.participantId == person.id
-                              ? Colors.white
-                              : ActivityColors.mutedInk,
-                        ),
-                        showCheckmark: false,
-                        side: BorderSide(
-                          color: calendar.participantId == person.id
-                              ? ActivityColors.primary
-                              : ActivityColors.outline.withValues(alpha: .4),
-                        ),
-                        onSelected: (_) => model.toggleParticipant(person.id),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              tr('Selected agenda', 'Agenda selecionada'),
-              style: Theme.of(context).textTheme.labelLarge,
-            ),
-            Text(
-              l.formatFullDate(calendar.selected),
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            Text(
-              pt
-                  ? '$pendingCount pendentes · $doneCount concluídas'
-                  : '$pendingCount pending · $doneCount done',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            for (final entry in selectedEntries)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: _CalendarEntryCard(
-                  entry: entry,
-                  participants: calendar.data!.participants,
-                ),
-              ),
-            if (selectedEntries.isEmpty)
-              Text(
-                tr(
-                  'No entries for this day and these filters.',
-                  'Nenhuma atividade para este dia e filtros.',
+        ),
+        SegmentedButton<bool>(
+          segments: [
+            for (final mode in [false, true])
+              ButtonSegment(
+                value: mode,
+                label: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  child: Text(mode ? weekLabel : monthLabel),
                 ),
               ),
           ],
-        ],
-      ),
+          selected: {weekMode},
+          showSelectedIcon: false,
+          style: ButtonStyle(
+            visualDensity: VisualDensity.standard,
+            tapTargetSize: MaterialTapTargetSize.padded,
+            padding: const WidgetStatePropertyAll(EdgeInsets.all(2)),
+            backgroundColor: const WidgetStatePropertyAll(Colors.transparent),
+            overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+            splashFactory: NoSplash.splashFactory,
+            foregroundColor: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.selected)
+                  ? ActivityColors.primary
+                  : ActivityColors.mutedInk,
+            ),
+            side: const WidgetStatePropertyAll(BorderSide.none),
+            shape: const WidgetStatePropertyAll(StadiumBorder()),
+            textStyle: WidgetStateProperty.resolveWith(
+              (states) => labelStyle.copyWith(
+                decoration: states.contains(WidgetState.focused)
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
+            ),
+          ),
+          onSelectionChanged: (selection) => onChanged(selection.single),
+        ),
+      ],
     );
   }
 }
@@ -488,18 +673,30 @@ class _CalendarGridViewportState extends State<_CalendarGridViewport> {
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) => Scrollbar(
-      controller: _scrollController,
-      thumbVisibility: constraints.maxWidth < 336,
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        scrollDirection: Axis.horizontal,
+    builder: (context, constraints) {
+      // Keep whole date targets visible at either edge when revealing selection.
+      final viewportWidth = constraints.maxWidth < 336
+          ? (constraints.maxWidth / 48).floor() * 48.0
+          : constraints.maxWidth;
+      return Align(
+        alignment: Alignment.centerLeft,
         child: SizedBox(
-          width: constraints.maxWidth < 336 ? 336 : constraints.maxWidth,
-          child: widget.child,
+          width: viewportWidth,
+          child: Scrollbar(
+            controller: _scrollController,
+            thumbVisibility: constraints.maxWidth < 336,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: constraints.maxWidth < 336 ? 336 : constraints.maxWidth,
+                child: widget.child,
+              ),
+            ),
+          ),
         ),
-      ),
-    ),
+      );
+    },
   );
 }
 

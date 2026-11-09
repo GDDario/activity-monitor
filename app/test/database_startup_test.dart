@@ -11,7 +11,9 @@ void main() {
   test(
     'startup provider creates the database in the app support directory',
     () async {
-      final directory = await Directory.systemTemp.createTemp('activity_boot_');
+      Directory('../.scratches').createSync(recursive: true);
+      final directory = await Directory('../.scratches')
+          .createTemp('activity_boot_');
       addTearDown(() => directory.delete(recursive: true));
       final container = ProviderContainer(
         overrides: [
@@ -24,9 +26,9 @@ void main() {
       expect(await File(path).exists(), isTrue);
       final db = sqlite3.open(path);
       addTearDown(db.close);
-      expect(db.select('PRAGMA user_version').single.values.single, 3);
-      expect(db.select('SELECT * FROM migrations').length, 3);
-      expect(db.select('SELECT * FROM calendar_entries'), isNotEmpty);
+      expect(db.select('PRAGMA user_version').single.values.single, 4);
+      expect(db.select('SELECT * FROM migrations').length, 4);
+      expect(db.select('SELECT * FROM tasks'), isNotEmpty);
     },
   );
   testWidgets(
@@ -46,7 +48,7 @@ void main() {
       );
       await tester.pump();
       expect(calls, 1);
-      expect(find.text('Good morning'), findsOneWidget);
+      expect(find.text('Your daily rhythm'), findsOneWidget);
     },
   );
 

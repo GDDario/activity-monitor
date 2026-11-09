@@ -5,6 +5,25 @@ import 'package:app/domain/models/calendar_data.dart';
 import 'package:app/ui/calendar/view_models/calendar_view_model.dart';
 
 void main() {
+  test('an older load cannot overwrite a newer calendar snapshot', () async {
+    final first = Completer<CalendarData>();
+    final second = Completer<CalendarData>();
+    var calls = 0;
+    final model = CalendarViewModel(
+      DateTime(2024),
+      () => calls++ == 0 ? first.future : second.future,
+    );
+    addTearDown(model.dispose);
+    final oldLoad = model.load();
+    final latestLoad = model.load();
+    final latest = CalendarData([], []);
+    second.complete(latest);
+    await latestLoad;
+    first.complete(const CalendarData([], []));
+    await oldLoad;
+    expect(model.calendar.data, same(latest));
+  });
+
   test('loads calendar data and notifies listeners', () async {
     final data = CalendarData([], []);
     final model = CalendarViewModel(DateTime(2024, 1, 31), () async => data);

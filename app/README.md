@@ -51,6 +51,69 @@ done entries for the selected day and active filters; changing completion status
 is outside the calendar feature. Downgrading requires a backup and table rebuild
 and would discard stored completion status.
 
+## Task cards, editor, and recurring schedules
+
+The task feature adds local creation/editing to Today and Calendar. Both screens
+use the same cards and actions. Today derives its filters, pending/done counts
+and progress from stored occurrences. Calendar retains its selected date, mode,
+cadence filter and participant filter when committed changes refresh its data.
+
+Migration 4 (`0004_create_task_tables`) replaces calendar entries with canonical
+`tasks` and `task_occurrences`, plus tag, checklist, participant-link and schedule
+history tables. Existing entry IDs, title text, dates, cadence labels, completion
+and participant links are preserved. Each legacy entry becomes an independent
+task with one occurrence. Its daily/weekly label does not silently enable new
+repeats: the editor offers explicit opt-in. Example records keep their labels
+and are not regenerated. Unknown historical creation/completion times stay
+unknown rather than receiving invented timestamps.
+
+New daily and weekly tasks materialize only requested date intervals. An
+occurrence keeps its original scheduled slot when postponed; its effective date
+determines agenda placement. Deleting one occurrence retains a tombstone so
+reloading or restarting cannot regenerate it. It does not delete the series.
+Completion, reopening, postponement and deletion affect the selected occurrence;
+subtask completion is independent from its parent.
+
+The editor distinguishes shared details/checklist definitions and scheduling
+defaults from the selected occurrence's date/time override. Shared details
+apply to the task's cards, including past cards. Recurrence edits take effect
+from tomorrow and preserve past/today, completed and explicitly modified slots;
+historical rule snapshots reconstruct previously unvisited dates. Changing to
+one-time stops further repeats from the effective boundary. Daily streaks use
+original scheduled dates, including intentional backfilled completions, and
+never count future dates.
+
+Timed tasks can save reminder preferences, but this release does not request
+notification permission, schedule alerts, or play sounds. The UI labels these
+preferences as inactive. Custom recurrence, participant assignment/invitations,
+remote synchronization, authentication, storage encryption and web persistence
+are not introduced.
+
+Completion and deletion offer the latest five-active-second Undo window.
+Remaining time survives navigation between Today and Calendar, uses elapsed
+time independent of device-clock changes, and pauses/extends for accessible
+interaction. Restarting closes the recovery window while preserving committed
+data. Conditional task/occurrence revisions prevent stale editors or Undo from
+overwriting newer changes.
+
+All aggregate writes and migrations are transactional. A failed write preserves
+the editor draft; a failed migration preserves the pre-upgrade schema, data and
+history. No startup error automatically resets the database. A successful
+version-4 database cannot be opened by an older app expecting calendar-entry
+tables. Before upgrading data that must be recoverable, stop the app and retain
+a consistent pre-upgrade database backup, including any WAL/SHM companions.
+Operational rollback requires restoring that backup with the matching older
+app while stopped; preserve/export post-upgrade data before any deliberate
+conversion. There is no automatic destructive down migration.
+
+Feature contracts and verification checklists are in
+[`../docs/spec/features/FEATURE 3 - tasks/`](../docs/spec/features/FEATURE%203%20-%20tasks/).
+Run `dart format .`, `flutter analyze`, and `flutter test` from this directory.
+For runtime inspection start Flutter with `--print-dtd`; from a worktree root,
+the repository's `.opencode/skills/git-worktree/scripts/run_flutter.sh` helper
+allocates isolated runtime ports. Screenshots and working artifacts belong in
+that worktree's `.scratches/` directory.
+
 To recreate a development database, **stop the app first** and move
 `activity_monitor.db` and any `activity_monitor.db-wal` and
 `activity_monitor.db-shm` files out of the application-support directory to a

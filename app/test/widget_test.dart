@@ -9,8 +9,8 @@ void main() {
   testWidgets('shows the daily activity overview', (WidgetTester tester) async {
     await tester.pumpWidget(const ProviderScope(child: ActivityMonitorApp()));
 
-    expect(find.text('Good morning'), findsOneWidget);
-    expect(find.text('Morning focus'), findsOneWidget);
+    expect(find.text('Your daily rhythm'), findsOneWidget);
+    expect(find.text('Create task'), findsOneWidget);
     expect(find.text('Today'), findsOneWidget);
     expect(
       Localizations.localeOf(tester.element(find.byType(Scaffold))),
