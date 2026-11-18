@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'package:app/domain/models/task.dart';
+import 'package:app/domain/models/person.dart';
 import 'package:app/domain/models/task_result.dart';
 import 'package:app/domain/value_objects/occurrence_id.dart';
 import 'package:app/domain/value_objects/subtask_id.dart';
@@ -11,6 +12,17 @@ import 'package:app/domain/value_objects/task_id.dart';
 import 'package:app/domain/value_objects/weekly_days.dart';
 
 enum DraftDismissal { close, confirmDiscard, blocked }
+
+class TaskPeopleChoices {
+  TaskPeopleChoices({
+    List<Person> people = const [],
+    this.loading = false,
+    this.failure,
+  }) : people = List.unmodifiable(people);
+  final List<Person> people;
+  final bool loading;
+  final PeopleFailure? failure;
+}
 
 class TaskEditorState {
   TaskEditorState({
@@ -23,9 +35,12 @@ class TaskEditorState {
     this.showErrors = false,
     this.failure,
     this.overlaps,
+    TaskPeopleChoices? peopleChoices,
     Map<String, String> fieldErrors = const {},
-  }) : fieldErrors = Map.unmodifiable(fieldErrors);
+  }) : peopleChoices = peopleChoices ?? TaskPeopleChoices(),
+       fieldErrors = Map.unmodifiable(fieldErrors);
   final TaskDraft draft;
+  final TaskPeopleChoices peopleChoices;
   final bool isSaving, isLoading, isLoadFailed, isDirty, hasSaved, showErrors;
   final TaskFailure? failure;
   final bool? overlaps;
@@ -40,8 +55,35 @@ class TaskEditorViewModel extends ChangeNotifier {
     required this._save,
     this._checkOverlap,
     this._load,
+    this.loadPeople,
   }) : _validate = validate,
        _state = TaskEditorState(draft: draft, fieldErrors: validate(draft));
+
+  final Future<PeopleResult<PeopleSnapshot>> Function()? loadPeople;
+  List<Person> get people => state.peopleChoices.people;
+  bool get peopleLoading => state.peopleChoices.loading;
+  PeopleFailure? get peopleFailure => state.peopleChoices.failure;
+  Future<void> refreshPeople() async {
+    if (loadPeople == null || _disposed || peopleLoading) return;
+    _set(
+      peopleChoices: TaskPeopleChoices(people: people, loading: true),
+      failure: state.failure,
+    );
+    PeopleResult<PeopleSnapshot> result;
+    try {
+      result = await loadPeople!();
+    } catch (_) {
+      result = const PeopleResult.error(PeopleFailure.storageUnavailable);
+    }
+    if (_disposed) return;
+    _set(
+      peopleChoices: TaskPeopleChoices(
+        people: result.value?.people ?? people,
+        failure: result.failure,
+      ),
+      failure: state.failure,
+    );
+  }
 
   final String Function() newId;
   final Map<String, String> Function(TaskDraft) _validate;
@@ -76,11 +118,13 @@ class TaskEditorViewModel extends ChangeNotifier {
     TaskFailure? failure,
     bool? overlaps,
     bool keepOverlap = true,
+    TaskPeopleChoices? peopleChoices,
   }) {
     if (_disposed) return;
     final nextDraft = draft ?? _state.draft;
     _state = TaskEditorState(
       draft: nextDraft,
+      peopleChoices: peopleChoices ?? _state.peopleChoices,
       isSaving: isSaving ?? _state.isSaving,
       isLoading: isLoading ?? _state.isLoading,
       isLoadFailed: isLoadFailed ?? _state.isLoadFailed,

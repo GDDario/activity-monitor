@@ -17,11 +17,21 @@ List<TaskRow> readTaskAggregates(
   String? occurrenceId,
   String? scheduledAfter,
   bool includeDeleted = false,
+  List<String>? selectedOccurrenceIds,
+  bool manageTransaction = true,
 }) {
-  db.execute('BEGIN');
+  if (manageTransaction) db.execute('BEGIN');
   try {
     final clauses = <String>[];
     final args = <Object?>[];
+    if (selectedOccurrenceIds != null) {
+      if (selectedOccurrenceIds.isEmpty) {
+        if (manageTransaction) db.execute('COMMIT');
+        return [];
+      }
+      clauses.add('id IN (${_placeholders(selectedOccurrenceIds.length)})');
+      args.addAll(selectedOccurrenceIds);
+    }
     if (!includeDeleted) clauses.add('deleted_at_utc IS NULL');
     if (from != null) {
       clauses.add('effective_date >= ?');
@@ -51,7 +61,7 @@ List<TaskRow> readTaskAggregates(
     );
     final ids = occurrences.map((o) => o['task_id'] as String).toSet().toList();
     if (ids.isEmpty) {
-      db.execute('COMMIT');
+      if (manageTransaction) db.execute('COMMIT');
       return [];
     }
     final tasks = _readTaskGraphs(db, ids);
@@ -73,10 +83,10 @@ List<TaskRow> readTaskAggregates(
           },
         )
         .toList();
-    db.execute('COMMIT');
+    if (manageTransaction) db.execute('COMMIT');
     return result;
   } catch (_) {
-    db.execute('ROLLBACK');
+    if (manageTransaction) db.execute('ROLLBACK');
     rethrow;
   }
 }
@@ -341,6 +351,23 @@ Map<String, Object?> commitTaskSave(Database db, Map<String, Object?> request) {
         taskId,
         _expected(request)['taskRevision'],
       ]);
+    }
+    if (request.containsKey('participants')) {
+      final people = (request['participants'] as List).cast<String>().toSet();
+      for (final id in people) {
+        if (db.select('SELECT id FROM calendar_participants WHERE id=?', [
+          id,
+        ]).isEmpty) {
+          throw const TaskDatabaseConflict('validation');
+        }
+      }
+      db.execute('DELETE FROM task_participants WHERE task_id=?', [taskId]);
+      for (final id in people) {
+        db.execute(
+          'INSERT INTO task_participants(task_id,participant_id) VALUES (?,?)',
+          [taskId, id],
+        );
+      }
     }
     final tags = request['tags'] as List;
     final subtasks = request['subtasks'] as List;

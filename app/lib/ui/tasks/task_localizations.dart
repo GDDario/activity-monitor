@@ -140,6 +140,7 @@ class TaskLocalizations {
     'noSubtasks': 'No subtasks',
     'defaultSchedule': 'Shared schedule defaults',
     'personalTask': 'Personal task',
+    'sharedTask': 'Shared task',
     'required': 'Required',
     'reloading': 'Reloading…',
   };
@@ -240,6 +241,7 @@ class TaskLocalizations {
     'noSubtasks': 'Sem subtarefas',
     'defaultSchedule': 'Agendamento padrão compartilhado',
     'personalTask': 'Tarefa pessoal',
+    'sharedTask': 'Tarefa compartilhada',
     'required': 'Obrigatório',
     'reloading': 'Recarregando…',
   };

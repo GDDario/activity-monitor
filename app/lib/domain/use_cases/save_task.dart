@@ -151,7 +151,7 @@ class SaveTask {
         ),
       ),
     ],
-    participants: participants,
+    participants: draft.participants ?? participants,
   );
 
   Future<TaskResult<TaskSaveResult>> _edit(
@@ -367,6 +367,11 @@ bool _sameTaskContent(Task a, Task b) {
       a.notes != b.notes ||
       a.priority != b.priority ||
       a.schedule != b.schedule) {
+    return false;
+  }
+  final aPeople = a.participants.map((p) => p.id).toSet();
+  final bPeople = b.participants.map((p) => p.id).toSet();
+  if (aPeople.length != bPeople.length || !aPeople.containsAll(bPeople)) {
     return false;
   }
   final aTags = a.tags.map((t) => t.name.key).toSet();
