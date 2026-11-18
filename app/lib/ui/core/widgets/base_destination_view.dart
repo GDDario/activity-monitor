@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/core/theme/activity_dimensions.dart';
 import 'package:app/ui/core/widgets/application_shell.dart';
 import 'package:app/ui/core/widgets/screen_title_bar.dart';
@@ -41,7 +41,11 @@ class BaseDestinationView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(icon, color: ActivityColors.primary, size: 32),
+                  Icon(
+                    icon,
+                    color: ActivityPalette.of(context).primary,
+                    size: 32,
+                  ),
                   const SizedBox(height: ActivitySpace.md),
                   Text(title, style: Theme.of(context).textTheme.headlineSmall),
                   const SizedBox(height: ActivitySpace.sm),

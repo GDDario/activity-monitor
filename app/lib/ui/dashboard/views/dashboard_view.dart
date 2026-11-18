@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app/app/dependencies/task_dependencies.dart';
 import 'package:app/domain/models/daily_overview.dart';
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/core/widgets/application_shell.dart';
 import 'package:app/ui/dashboard/home_localizations.dart';
 import 'package:app/ui/dashboard/widgets/home_agenda.dart';
@@ -38,8 +38,8 @@ class DashboardView extends ConsumerWidget {
                     ref,
                     TaskEditorRequest(date: model.today),
                   ),
-            backgroundColor: ActivityColors.primary,
-            foregroundColor: Colors.white,
+            backgroundColor: ActivityPalette.of(context).primary,
+            foregroundColor: ActivityPalette.of(context).onPrimary,
             child: const Icon(Icons.add),
           ),
           child: Stack(
@@ -51,7 +51,7 @@ class DashboardView extends ConsumerWidget {
                   const SizedBox(height: 16),
                   HomeFilters(
                     scope: state.scope,
-                    companions: overview?.companions ?? const [],
+                    companions: overview?.companions ?? [],
                     onSelected: model.setScope,
                   ),
                   const SizedBox(height: 24),

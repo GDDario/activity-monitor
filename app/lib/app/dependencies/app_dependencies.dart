@@ -10,6 +10,8 @@ import 'package:sqlite3/sqlite3.dart';
 import 'package:app/data/services/calendar_database.dart';
 import 'package:app/app/dependencies/database_dependencies.dart';
 import 'package:app/app/dependencies/task_dependencies.dart';
+import 'package:app/app/dependencies/profile_dependencies.dart';
+import 'package:app/app/profile_route_policy.dart';
 import 'package:app/app/dependencies/people_repository_dependencies.dart';
 import 'package:app/domain/value_objects/local_date.dart';
 import 'package:app/domain/value_objects/local_date_range.dart';
@@ -25,7 +27,12 @@ import 'package:app/ui/profile/views/profile_view.dart';
 export 'database_dependencies.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
+  final session = ref.read(profileSessionProvider);
+  final policy = ProfileRoutePolicy();
+  final router = GoRouter(
+    refreshListenable: session,
+    redirect: (context, state) =>
+        policy.redirect(session.state, state.uri.path),
     routes: [
       GoRoute(path: '/', builder: (context, state) => const DashboardView()),
       GoRoute(path: '/people', builder: (context, state) => const PeopleView()),
@@ -40,6 +47,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
     errorBuilder: (context, state) => const _UnknownLocationView(),
   );
+  ref.onDispose(router.dispose);
+  return router;
 });
 
 final httpClientProvider = Provider<Dio>((ref) {
@@ -69,9 +78,7 @@ final calendarDataProvider = FutureProvider<CalendarData>((ref) async {
   return compute(_readCalendar, (path, range));
 });
 
-final calendarViewModelProvider = Provider.autoDispose<CalendarViewModel>((
-  ref,
-) {
+final calendarViewModelProvider = Provider<CalendarViewModel>((ref) {
   late final CalendarViewModel model;
   model = CalendarViewModel(
     ref.read(taskClockProvider)(),
@@ -129,8 +136,13 @@ class _UnknownLocationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('This page is unavailable.')),
+    final pt = Localizations.localeOf(context).languageCode == 'pt';
+    return Scaffold(
+      body: Center(
+        child: Text(
+          pt ? 'Esta página está indisponível.' : 'This page is unavailable.',
+        ),
+      ),
     );
   }
 }

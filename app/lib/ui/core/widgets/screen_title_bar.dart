@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
+import 'package:app/ui/profile/widgets/profile_avatar.dart';
 
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/core/theme/activity_dimensions.dart';
 import 'package:app/ui/core/widgets/application_shell.dart';
 
@@ -32,28 +33,13 @@ class ScreenTitleBar extends StatelessWidget {
         Text(
           title,
           style: (titleStyle ?? textTheme.headlineMedium)?.copyWith(
-            color: ActivityColors.primary,
+            color: ActivityPalette.of(context).primary,
           ),
         ),
       ],
     );
     final controls = <Widget>[
-      Semantics(
-        button: true,
-        container: true,
-        label: pt ? 'Iniciais do perfil AM' : 'Profile initials AM',
-        child: InkResponse(
-          onTap: () => context.go(AppDestination.profile.path),
-          radius: 28,
-          child: const ExcludeSemantics(
-            child: CircleAvatar(
-              radius: 24,
-              backgroundColor: ActivityColors.primarySoft,
-              child: Text('AM'),
-            ),
-          ),
-        ),
-      ),
+      ProfileAvatar(onTap: () => context.go(AppDestination.profile.path)),
       if (!stacked) const SizedBox(width: ActivitySpace.md),
       if (!stacked) Expanded(child: heading),
       if (stacked) const Spacer(),

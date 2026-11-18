@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/core/theme/activity_dimensions.dart';
 
 enum AppDestination {
@@ -104,11 +104,14 @@ class _SideNavigation extends StatelessWidget {
       selectedIndex: destination.index,
       labelType: NavigationRailLabelType.all,
       onDestinationSelected: (index) => _navigateTo(context, index),
-      leading: const Padding(
-        padding: EdgeInsets.all(ActivitySpace.md),
+      leading: Padding(
+        padding: const EdgeInsets.all(ActivitySpace.md),
         child: CircleAvatar(
-          backgroundColor: ActivityColors.primarySoft,
-          child: Icon(Icons.spa_outlined, color: ActivityColors.primary),
+          backgroundColor: ActivityPalette.of(context).primarySoft,
+          child: Icon(
+            Icons.spa_outlined,
+            color: ActivityPalette.of(context).primary,
+          ),
         ),
       ),
       destinations: [

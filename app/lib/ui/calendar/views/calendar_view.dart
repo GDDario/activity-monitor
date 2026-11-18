@@ -11,7 +11,7 @@ import 'package:app/ui/tasks/widgets/task_card.dart';
 import 'package:app/ui/tasks/widgets/task_undo_banner.dart';
 import 'package:app/domain/models/calendar_data.dart';
 import 'package:app/ui/calendar/view_models/calendar_view_model.dart';
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/core/widgets/application_shell.dart';
 import 'package:app/ui/core/widgets/screen_title_bar.dart';
 
@@ -64,8 +64,8 @@ class CalendarView extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         tooltip: taskStrings.text('createTask'),
         onPressed: canCreate ? createTask : null,
-        backgroundColor: ActivityColors.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: ActivityPalette.of(context).primary,
+        foregroundColor: ActivityPalette.of(context).onPrimary,
         child: const Icon(Icons.add),
       ),
       child: Stack(
@@ -213,7 +213,8 @@ class CalendarView extends ConsumerWidget {
                                               foregroundColor:
                                                   day.month ==
                                                       calendar.selected.month
-                                                  ? ActivityColors.ink
+                                                  ? ActivityPalette.of(context)
+                                                        .ink
                                                   : Theme.of(context)
                                                         .disabledColor,
                                             ),
@@ -234,9 +235,11 @@ class CalendarView extends ConsumerWidget {
                                                         day,
                                                         calendar.selected,
                                                       )
-                                                      ? const BoxDecoration(
-                                                          color: ActivityColors
-                                                              .primary,
+                                                      ? BoxDecoration(
+                                                          color:
+                                                              ActivityPalette.of(
+                                                                context,
+                                                              ).primary,
                                                           shape:
                                                               BoxShape.circle,
                                                         )
@@ -249,9 +252,11 @@ class CalendarView extends ConsumerWidget {
                                                             day,
                                                             calendar.selected,
                                                           )
-                                                          ? const TextStyle(
+                                                          ? TextStyle(
                                                               color:
-                                                                  Colors.white,
+                                                                  ActivityPalette.of(
+                                                                    context,
+                                                                  ).onPrimary,
                                                               fontWeight:
                                                                   FontWeight
                                                                       .bold,
@@ -360,7 +365,7 @@ class CalendarView extends ConsumerWidget {
                           _LegendItem(
                             indicator: const _CalendarIndicator.cadence(),
                             label: tr('Cadence active', 'Cadência ativa'),
-                            color: ActivityColors.primary,
+                            color: ActivityPalette.of(context).primary,
                           ),
                         ],
                       ),
@@ -397,20 +402,20 @@ class CalendarView extends ConsumerWidget {
                           child: FilterChip(
                             label: Text(item.$2),
                             selected: calendar.cadence == item.$1,
-                            selectedColor: ActivityColors.primary,
-                            backgroundColor: ActivityColors.surfaceMuted,
+                            selectedColor: ActivityPalette.of(context).primary,
+                            backgroundColor: ActivityPalette.of(context)
+                                .surfaceMuted,
                             labelStyle: TextStyle(
                               color: calendar.cadence == item.$1
-                                  ? Colors.white
-                                  : ActivityColors.mutedInk,
+                                  ? ActivityPalette.of(context).onPrimary
+                                  : ActivityPalette.of(context).mutedInk,
                             ),
                             showCheckmark: false,
                             side: BorderSide(
                               color: calendar.cadence == item.$1
-                                  ? ActivityColors.primary
-                                  : ActivityColors.outline.withValues(
-                                      alpha: .4,
-                                    ),
+                                  ? ActivityPalette.of(context).primary
+                                  : ActivityPalette.of(context).outline
+                                        .withValues(alpha: .4),
                             ),
                             onSelected: (_) => model.setCadence(item.$1),
                           ),
@@ -421,20 +426,20 @@ class CalendarView extends ConsumerWidget {
                           child: FilterChip(
                             label: Text(person.name),
                             selected: calendar.participantId == person.id,
-                            selectedColor: ActivityColors.primary,
-                            backgroundColor: ActivityColors.surfaceMuted,
+                            selectedColor: ActivityPalette.of(context).primary,
+                            backgroundColor: ActivityPalette.of(context)
+                                .surfaceMuted,
                             labelStyle: TextStyle(
                               color: calendar.participantId == person.id
-                                  ? Colors.white
-                                  : ActivityColors.mutedInk,
+                                  ? ActivityPalette.of(context).onPrimary
+                                  : ActivityPalette.of(context).mutedInk,
                             ),
                             showCheckmark: false,
                             side: BorderSide(
                               color: calendar.participantId == person.id
-                                  ? ActivityColors.primary
-                                  : ActivityColors.outline.withValues(
-                                      alpha: .4,
-                                    ),
+                                  ? ActivityPalette.of(context).primary
+                                  : ActivityPalette.of(context).outline
+                                        .withValues(alpha: .4),
                             ),
                             onSelected: (_) =>
                                 model.toggleParticipant(person.id),
@@ -540,10 +545,11 @@ class _CalendarModeToggle extends StatelessWidget {
             child: DecoratedBox(
               key: const ValueKey('calendar-mode-rail'),
               decoration: ShapeDecoration(
-                color: ActivityColors.surfaceStrong,
+                color: ActivityPalette.of(context).surfaceStrong,
                 shape: StadiumBorder(
                   side: BorderSide(
-                    color: ActivityColors.outline.withValues(alpha: .3),
+                    color: ActivityPalette.of(context).outline
+                        .withValues(alpha: .3),
                   ),
                 ),
               ),
@@ -563,11 +569,12 @@ class _CalendarModeToggle extends StatelessWidget {
                     child: DecoratedBox(
                       key: const ValueKey('calendar-mode-indicator'),
                       decoration: ShapeDecoration(
-                        color: ActivityColors.surface,
+                        color: ActivityPalette.of(context).surface,
                         shape: const StadiumBorder(),
                         shadows: [
                           BoxShadow(
-                            color: ActivityColors.ink.withValues(alpha: .12),
+                            color: ActivityPalette.of(context).ink
+                                .withValues(alpha: .12),
                             blurRadius: 2,
                             offset: const Offset(0, 1),
                           ),
@@ -605,8 +612,8 @@ class _CalendarModeToggle extends StatelessWidget {
             splashFactory: NoSplash.splashFactory,
             foregroundColor: WidgetStateProperty.resolveWith(
               (states) => states.contains(WidgetState.selected)
-                  ? ActivityColors.primary
-                  : ActivityColors.mutedInk,
+                  ? ActivityPalette.of(context).primary
+                  : ActivityPalette.of(context).mutedInk,
             ),
             side: const WidgetStatePropertyAll(BorderSide.none),
             shape: const WidgetStatePropertyAll(StadiumBorder()),
@@ -738,7 +745,7 @@ class _CalendarEntryCard extends StatelessWidget {
             Text(
               cadence,
               style: Theme.of(context).textTheme.labelMedium
-                  ?.copyWith(color: ActivityColors.primary),
+                  ?.copyWith(color: ActivityPalette.of(context).primary),
             ),
             const SizedBox(height: 8),
             Text(entry.title, style: Theme.of(context).textTheme.headlineSmall),
@@ -755,37 +762,42 @@ class _CalendarEntryCard extends StatelessWidget {
 
 class _CalendarIndicator extends StatelessWidget {
   const _CalendarIndicator.solo({bool selected = false})
-    : icon = Icons.circle,
-      color = ActivityColors.primaryContainer,
+    : kind = 0,
+      icon = Icons.circle,
       size = selected ? 10 : 8;
   const _CalendarIndicator.collaborative({bool selected = false})
-    : icon = Icons.circle,
-      color = ActivityColors.secondary,
+    : kind = 1,
+      icon = Icons.circle,
       size = selected ? 10 : 8;
   const _CalendarIndicator.cadence({bool selected = false})
-    : icon = Icons.sync,
-      color = ActivityColors.primary,
+    : kind = 2,
+      icon = Icons.sync,
       size = selected ? 14 : 12;
-
+  final int kind;
   final IconData icon;
-  final Color color;
   final double size;
-
   @override
-  Widget build(BuildContext context) => ExcludeSemantics(
-    child: Icon(icon, size: size, color: color),
-  );
+  Widget build(BuildContext context) {
+    final palette = ActivityPalette.of(context);
+    return ExcludeSemantics(
+      child: Icon(
+        icon,
+        size: size,
+        color: switch (kind) {
+          0 => palette.soloIndicator,
+          1 => palette.secondary,
+          _ => palette.primary,
+        },
+      ),
+    );
+  }
 }
 
 class _LegendItem extends StatelessWidget {
-  const _LegendItem({
-    required this.indicator,
-    required this.label,
-    this.color = ActivityColors.mutedInk,
-  });
+  const _LegendItem({required this.indicator, required this.label, this.color});
   final Widget indicator;
   final String label;
-  final Color color;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -797,7 +809,7 @@ class _LegendItem extends StatelessWidget {
         child: Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: color,
+            color: color ?? ActivityPalette.of(context).mutedInk,
             height: 14 / 11,
             fontWeight: FontWeight.w700,
           ),
@@ -818,9 +830,9 @@ class _MonthHeading extends StatelessWidget {
     final year = date.year.toString();
     final yearIndex = formatted.lastIndexOf(year);
     final monthStyle = Theme.of(context).textTheme.headlineSmall
-        ?.copyWith(color: ActivityColors.primary);
+        ?.copyWith(color: ActivityPalette.of(context).primary);
     final yearStyle = Theme.of(context).textTheme.bodyMedium
-        ?.copyWith(color: ActivityColors.outlineText);
+        ?.copyWith(color: ActivityPalette.of(context).outlineText);
     if (yearIndex < 0) return Text(formatted, style: monthStyle);
     return Text.rich(
       TextSpan(
