@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/widgets.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
+
 import 'package:app/app/activity_monitor_app.dart';
 import 'package:app/app/dependencies/app_dependencies.dart';
 
@@ -48,7 +50,10 @@ void main() {
       );
       await tester.pump();
       expect(calls, 1);
-      expect(find.text('Your daily rhythm'), findsOneWidget);
+      expect(
+        find.textContaining(RegExp('Good (morning|afternoon|evening)')),
+        findsOneWidget,
+      );
     },
   );
 

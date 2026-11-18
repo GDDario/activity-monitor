@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -96,6 +97,17 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Shared'));
       await tester.pumpAndSettle();
+      expect(find.text('Reading journal'), findsNothing);
+      await tester.tap(find.text('Calendar').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Today').last);
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<FilterChip>(find.widgetWithText(FilterChip, 'Shared'))
+            .selected,
+        isTrue,
+      );
       expect(find.text('Reading journal'), findsNothing);
       await tester.tap(find.text('All activities'));
       await tester.pumpAndSettle();

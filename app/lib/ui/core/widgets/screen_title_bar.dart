@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:go_router/go_router.dart';
 
 import 'package:app/ui/core/theme/activity_colors.dart';
@@ -6,10 +7,16 @@ import 'package:app/ui/core/theme/activity_dimensions.dart';
 import 'package:app/ui/core/widgets/application_shell.dart';
 
 class ScreenTitleBar extends StatelessWidget {
-  const ScreenTitleBar({super.key, required this.title, required this.phrase});
+  const ScreenTitleBar({
+    super.key,
+    required this.title,
+    required this.phrase,
+    this.titleStyle,
+  });
 
   final String title;
   final String phrase;
+  final TextStyle? titleStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +31,7 @@ class ScreenTitleBar extends StatelessWidget {
         Text(phrase, style: textTheme.bodySmall),
         Text(
           title,
-          style: textTheme.headlineMedium?.copyWith(
+          style: (titleStyle ?? textTheme.headlineMedium)?.copyWith(
             color: ActivityColors.primary,
           ),
         ),
