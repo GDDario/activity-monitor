@@ -1,3 +1,5 @@
+import 'helpers/profile_ready.dart';
+
 import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,7 +17,12 @@ import 'package:app/ui/core/widgets/screen_title_bar.dart';
 
 void main() {
   testWidgets('shows the daily activity overview', (WidgetTester tester) async {
-    await tester.pumpWidget(const ProviderScope(child: ActivityMonitorApp()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: profileReadyOverrides(),
+        child: const ActivityMonitorApp(),
+      ),
+    );
 
     expect(
       find.textContaining(RegExp('Good (morning|afternoon|evening)')),
@@ -38,7 +45,12 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(1200, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(const ProviderScope(child: ActivityMonitorApp()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: profileReadyOverrides(),
+        child: const ActivityMonitorApp(),
+      ),
+    );
 
     expect(find.byType(NavigationRail), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
@@ -52,6 +64,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          ...profileReadyOverrides(),
           peopleRepositoryProvider.overrideWith((ref) async => people),
         ],
         child: const ActivityMonitorApp(),
@@ -69,51 +82,68 @@ void main() {
     WidgetTester tester,
   ) async {
     final semantics = tester.ensureSemantics();
-    await tester.pumpWidget(const ProviderScope(child: ActivityMonitorApp()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: profileReadyOverrides(),
+        child: const ActivityMonitorApp(),
+      ),
+    );
 
     await tester.tap(find.byTooltip('Open calendar'));
     await tester.pumpAndSettle();
 
     expect(find.text('Calendar'), findsWidgets);
     expect(find.byTooltip('Open notifications'), findsOneWidget);
-    expect(find.bySemanticsLabel('Profile initials AM'), findsOneWidget);
+    expect(
+      find.bySemanticsLabel('Open profile for Robin Ward'),
+      findsOneWidget,
+    );
     semantics.dispose();
   });
 
   testWidgets('opens the Profile base screen from primary navigation', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ProviderScope(child: ActivityMonitorApp()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: profileReadyOverrides(),
+        child: const ActivityMonitorApp(),
+      ),
+    );
 
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('Your profile preferences will appear here.'),
-      findsOneWidget,
-    );
+    expect(find.text('Edit profile'), findsOneWidget);
   });
 
   testWidgets('opens Profile when the user avatar is tapped', (
     WidgetTester tester,
   ) async {
     final semantics = tester.ensureSemantics();
-    await tester.pumpWidget(const ProviderScope(child: ActivityMonitorApp()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: profileReadyOverrides(),
+        child: const ActivityMonitorApp(),
+      ),
+    );
 
-    await tester.tap(find.bySemanticsLabel('Profile initials AM'));
+    await tester.tap(find.bySemanticsLabel('Open profile for Robin Ward'));
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('Your profile preferences will appear here.'),
-      findsOneWidget,
-    );
+    expect(find.text('Edit profile'), findsOneWidget);
     semantics.dispose();
   });
 
   testWidgets('uses Today content insets on base destinations', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ProviderScope(child: ActivityMonitorApp()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: profileReadyOverrides(),
+        child: const ActivityMonitorApp(),
+      ),
+    );
 
     await tester.tap(find.text('Profile'));
     await tester.pumpAndSettle();
@@ -125,7 +155,12 @@ void main() {
   testWidgets('uses high-contrast colors for the selected filter', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ProviderScope(child: ActivityMonitorApp()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: profileReadyOverrides(),
+        child: const ActivityMonitorApp(),
+      ),
+    );
 
     final selectedFilter = tester.widget<FilterChip>(
       find.widgetWithText(FilterChip, 'All activities'),
@@ -142,19 +177,21 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
-      MaterialApp(
-        theme: ActivityTheme.light(),
-        builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context)
-              .copyWith(textScaler: TextScaler.linear(2)),
-          child: child!,
-        ),
-        home: const Scaffold(
-          body: Padding(
-            padding: EdgeInsets.all(16),
-            child: ScreenTitleBar(
-              title: 'Calendar',
-              phrase: 'A gentler view ahead',
+      ProviderScope(
+        child: MaterialApp(
+          theme: ActivityTheme.light(),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: TextScaler.linear(2)),
+            child: child!,
+          ),
+          home: const Scaffold(
+            body: Padding(
+              padding: EdgeInsets.all(16),
+              child: ScreenTitleBar(
+                title: 'Calendar',
+                phrase: 'A gentler view ahead',
+              ),
             ),
           ),
         ),

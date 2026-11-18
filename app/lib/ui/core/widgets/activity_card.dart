@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/core/theme/activity_dimensions.dart';
 
 class ActivityCard extends StatelessWidget {
@@ -31,8 +31,8 @@ class ActivityCard extends StatelessWidget {
             Icon(
               isComplete ? Icons.check_circle : Icons.radio_button_unchecked,
               color: isComplete
-                  ? ActivityColors.primaryContainer
-                  : ActivityColors.outline,
+                  ? ActivityPalette.of(context).primaryContainer
+                  : ActivityPalette.of(context).outline,
               semanticLabel: isComplete ? 'Completed' : 'Not completed',
             ),
             const SizedBox(width: ActivitySpace.md),
@@ -51,7 +51,9 @@ class ActivityCard extends StatelessWidget {
                           decoration: isComplete
                               ? TextDecoration.lineThrough
                               : null,
-                          color: isComplete ? ActivityColors.mutedInk : null,
+                          color: isComplete
+                              ? ActivityPalette.of(context).mutedInk
+                              : null,
                         ),
                       ),
                       _StatusChip(label: statusLabel),
@@ -94,8 +96,8 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPriority = label == 'High priority';
     final color = isPriority
-        ? ActivityColors.secondary
-        : ActivityColors.primary;
+        ? ActivityPalette.of(context).secondary
+        : ActivityPalette.of(context).primary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(

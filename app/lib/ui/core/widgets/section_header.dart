@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 
 class SectionHeader extends StatelessWidget {
   const SectionHeader({super.key, required this.title, required this.detail});
@@ -18,7 +18,7 @@ class SectionHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: ActivityColors.surfaceStrong,
+            color: ActivityPalette.of(context).surfaceStrong,
             borderRadius: BorderRadius.circular(99),
           ),
           child: Text(detail, style: Theme.of(context).textTheme.labelMedium),

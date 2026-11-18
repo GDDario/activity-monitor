@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app/domain/models/person.dart';
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/people/people_localizations.dart';
 import 'package:app/ui/people/view_models/people_view_model.dart';
 
@@ -95,15 +95,19 @@ class PersonEditorSheet extends StatelessWidget {
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: const Color(0xfff2f4f0),
+                    fillColor: ActivityPalette.of(context).inputSurface,
                     floatingLabelBehavior: FloatingLabelBehavior.always,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: ActivityColors.outline),
+                      borderSide: BorderSide(
+                        color: ActivityPalette.of(context).outline,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: ActivityColors.outline),
+                      borderSide: BorderSide(
+                        color: ActivityPalette.of(context).outline,
+                      ),
                     ),
                     labelText: l.text('name'),
                     errorText:
@@ -120,15 +124,19 @@ class PersonEditorSheet extends StatelessWidget {
                   enabled: !s.saving,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: const Color(0xfff2f4f0),
+                    fillColor: ActivityPalette.of(context).inputSurface,
                     floatingLabelBehavior: FloatingLabelBehavior.always,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: ActivityColors.outline),
+                      borderSide: BorderSide(
+                        color: ActivityPalette.of(context).outline,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: ActivityColors.outline),
+                      borderSide: BorderSide(
+                        color: ActivityPalette.of(context).outline,
+                      ),
                     ),
                     labelText: l.text('role'),
                     errorText:
@@ -153,13 +161,14 @@ class PersonEditorSheet extends StatelessWidget {
                         label: Text(l.text(c.name)),
                         selected: s.draft.categories.contains(c),
                         materialTapTargetSize: MaterialTapTargetSize.padded,
-                        backgroundColor: const Color(0xfff2f4f0),
-                        selectedColor: ActivityColors.primary,
-                        checkmarkColor: Colors.white,
+                        backgroundColor: ActivityPalette.of(context)
+                            .inputSurface,
+                        selectedColor: ActivityPalette.of(context).primary,
+                        checkmarkColor: ActivityPalette.of(context).onPrimary,
                         labelStyle: TextStyle(
                           color: s.draft.categories.contains(c)
-                              ? Colors.white
-                              : ActivityColors.primary,
+                              ? ActivityPalette.of(context).onPrimary
+                              : ActivityPalette.of(context).primary,
                         ),
                         onSelected: s.saving
                             ? null

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:app/domain/models/daily_overview.dart';
 import 'package:app/domain/models/task.dart';
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/tasks/task_localizations.dart';
 
 class HomeFilters extends StatefulWidget {
@@ -86,21 +86,25 @@ class _HomeFiltersState extends State<HomeFilters> {
           avatar: Icon(
             icon,
             size: 16,
-            color: value == scope ? Colors.white : ActivityColors.primary,
+            color: value == scope
+                ? ActivityPalette.of(context).onPrimary
+                : ActivityPalette.of(context).primary,
           ),
           label: Text(label, key: value == scope ? _selected : null),
           selected: scope == value,
-          selectedColor: ActivityColors.primary,
-          backgroundColor: ActivityColors.surfaceMuted,
+          selectedColor: ActivityPalette.of(context).primary,
+          backgroundColor: ActivityPalette.of(context).surfaceMuted,
           labelStyle: TextStyle(
-            color: scope == value ? Colors.white : ActivityColors.mutedInk,
+            color: scope == value
+                ? ActivityPalette.of(context).onPrimary
+                : ActivityPalette.of(context).mutedInk,
           ),
           showCheckmark: false,
           materialTapTargetSize: MaterialTapTargetSize.padded,
           side: BorderSide(
             color: scope == value
-                ? ActivityColors.primary
-                : ActivityColors.outline.withValues(alpha: .4),
+                ? ActivityPalette.of(context).primary
+                : ActivityPalette.of(context).outline.withValues(alpha: .4),
           ),
           onSelected: (_) => onSelected(value),
         ),

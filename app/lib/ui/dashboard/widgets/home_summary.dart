@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:app/domain/models/daily_overview.dart';
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/dashboard/home_localizations.dart';
 
 class HomeSummary extends StatelessWidget {
@@ -18,7 +18,9 @@ class HomeSummary extends StatelessWidget {
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: ActivityColors.outline.withValues(alpha: .5)),
+        side: BorderSide(
+          color: ActivityPalette.of(context).outline.withValues(alpha: .5),
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -32,7 +34,7 @@ class HomeSummary extends StatelessWidget {
               children: [
                 DecoratedBox(
                   decoration: BoxDecoration(
-                    color: ActivityColors.surfaceMuted,
+                    color: ActivityPalette.of(context).surfaceMuted,
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: Padding(
@@ -43,7 +45,7 @@ class HomeSummary extends StatelessWidget {
                     child: Text(
                       l.text('rhythm').toUpperCase(),
                       style: theme.textTheme.labelMedium?.copyWith(
-                        color: ActivityColors.primary,
+                        color: ActivityPalette.of(context).primary,
                       ),
                     ),
                   ),
@@ -59,7 +61,7 @@ class HomeSummary extends StatelessWidget {
                       ? l.text('emptyGuidance')
                       : l.remaining(progress.pending),
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: ActivityColors.mutedInk,
+                    color: ActivityPalette.of(context).mutedInk,
                   ),
                 ),
               ],
@@ -78,8 +80,9 @@ class HomeSummary extends StatelessWidget {
                           value: progress.fraction,
                           strokeWidth: 6,
                           strokeCap: StrokeCap.round,
-                          color: ActivityColors.primaryContainer,
-                          backgroundColor: ActivityColors.surfaceStrong,
+                          color: ActivityPalette.of(context).soloIndicator,
+                          backgroundColor: ActivityPalette.of(context)
+                              .surfaceStrong,
                         ),
                       ),
                       Padding(
@@ -89,7 +92,7 @@ class HomeSummary extends StatelessWidget {
                           child: Text(
                             '${progress.percentage}%',
                             style: theme.textTheme.labelLarge?.copyWith(
-                              color: ActivityColors.primary,
+                              color: ActivityPalette.of(context).primary,
                             ),
                           ),
                         ),
@@ -114,7 +117,10 @@ class HomeSummary extends StatelessWidget {
                       ring,
                     ],
                   ),
-                const Divider(height: 32, color: ActivityColors.surfaceStrong),
+                Divider(
+                  height: 32,
+                  color: ActivityPalette.of(context).surfaceStrong,
+                ),
                 Wrap(
                   spacing: 20,
                   runSpacing: 12,
@@ -155,13 +161,13 @@ class _Metric extends StatelessWidget {
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: ActivityColors.primary),
+        Icon(icon, size: 18, color: ActivityPalette.of(context).primary),
         const SizedBox(width: 8),
         Flexible(
           child: Text(
             text,
             style: Theme.of(context).textTheme.labelMedium
-                ?.copyWith(color: ActivityColors.mutedInk),
+                ?.copyWith(color: ActivityPalette.of(context).mutedInk),
           ),
         ),
       ],

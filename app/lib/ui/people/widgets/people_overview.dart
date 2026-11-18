@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app/domain/models/person.dart';
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/people/people_localizations.dart';
 
 class PeopleOverview extends StatelessWidget {
@@ -18,14 +18,14 @@ class PeopleOverview extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(child: Text(heading, style: t.labelLarge)),
-                  Icon(icon, color: ActivityColors.primary),
+                  Icon(icon, color: ActivityPalette.of(context).primary),
                 ],
               ),
               const SizedBox(height: 16),
               Text(
                 value,
                 style: t.headlineMedium?.copyWith(
-                  color: ActivityColors.primary,
+                  color: ActivityPalette.of(context).primary,
                 ),
               ),
               Text(label, style: t.bodyMedium),
@@ -108,7 +108,7 @@ class PeopleOverview extends StatelessWidget {
                   child: SizedBox(
                     height: 8,
                     child: snapshot.total == 0
-                        ? ColoredBox(color: ActivityColors.outline)
+                        ? ColoredBox(color: ActivityPalette.of(context).outline)
                         : Row(
                             children: [
                               if (snapshot.solo > 0)
@@ -116,7 +116,7 @@ class PeopleOverview extends StatelessWidget {
                                   flex: snapshot.solo,
                                   child: ColoredBox(
                                     key: const ValueKey('people-solo-bar'),
-                                    color: ActivityColors.outline,
+                                    color: ActivityPalette.of(context).outline,
                                     child: const SizedBox.expand(),
                                   ),
                                 ),
@@ -125,7 +125,7 @@ class PeopleOverview extends StatelessWidget {
                                   flex: snapshot.shared,
                                   child: ColoredBox(
                                     key: const ValueKey('people-shared-bar'),
-                                    color: ActivityColors.primary,
+                                    color: ActivityPalette.of(context).primary,
                                     child: const SizedBox.expand(),
                                   ),
                                 ),
@@ -149,9 +149,9 @@ class _Surface extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: ActivityColors.surface,
+      color: ActivityPalette.of(context).surface,
       borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: const Color(0xffe1e3df)),
+      border: Border.all(color: ActivityPalette.of(context).border),
     ),
     child: child,
   );

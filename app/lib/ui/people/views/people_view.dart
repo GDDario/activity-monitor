@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/app/dependencies/people_dependencies.dart';
 import 'package:app/app/dependencies/task_dependencies.dart';
 import 'package:app/domain/models/person.dart';
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/core/widgets/application_shell.dart';
 import 'package:app/ui/core/widgets/screen_title_bar.dart';
 import 'package:app/ui/people/people_localizations.dart';
@@ -142,10 +142,12 @@ class _PeopleBodyState extends ConsumerState<_PeopleBody> {
                       icon: const Icon(Icons.clear),
                     ),
               filled: true,
-              fillColor: const Color(0xfff2f4f0),
+              fillColor: ActivityPalette.of(context).inputSurface,
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: ActivityColors.outline),
+                borderSide: BorderSide(
+                  color: ActivityPalette.of(context).outline,
+                ),
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -241,11 +243,13 @@ class _Filters extends StatelessWidget {
           label: Text(l.text(key)),
           selected: selected == key,
           onSelected: (_) => onSelected(key),
-          selectedColor: ActivityColors.primary,
+          selectedColor: ActivityPalette.of(context).primary,
           labelStyle: TextStyle(
-            color: selected == key ? Colors.white : ActivityColors.primary,
+            color: selected == key
+                ? ActivityPalette.of(context).onPrimary
+                : ActivityPalette.of(context).primary,
           ),
-          checkmarkColor: Colors.white,
+          checkmarkColor: ActivityPalette.of(context).onPrimary,
         ),
     ];
     if (MediaQuery.textScalerOf(context).scale(14) > 20 ||
@@ -280,12 +284,12 @@ class _PersonCard extends StatelessWidget {
         .join()
         .toUpperCase();
     return Card(
-      color: ActivityColors.surface,
+      color: ActivityPalette.of(context).surface,
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: const Color(0xffe1e3df)),
+        side: BorderSide(color: ActivityPalette.of(context).border),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -300,8 +304,8 @@ class _PersonCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 24,
-                    backgroundColor: ActivityColors.primarySoft,
-                    foregroundColor: ActivityColors.primary,
+                    backgroundColor: ActivityPalette.of(context).primarySoft,
+                    foregroundColor: ActivityPalette.of(context).primary,
                     child: ExcludeSemantics(
                       child: Text(initials.isEmpty ? '?' : initials),
                     ),
@@ -320,7 +324,7 @@ class _PersonCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              Divider(color: const Color(0xffe1e3df)),
+              Divider(color: ActivityPalette.of(context).border),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -328,12 +332,16 @@ class _PersonCard extends StatelessWidget {
                   for (final c in person.categories)
                     Chip(
                       label: Text(l.text(c.name)),
-                      labelStyle: TextStyle(color: ActivityColors.primary),
+                      labelStyle: TextStyle(
+                        color: ActivityPalette.of(context).primary,
+                      ),
                     ),
                   Chip(
                     avatar: const Icon(Icons.task_alt, size: 18),
                     label: Text(l.active(stats.active)),
-                    labelStyle: TextStyle(color: ActivityColors.primary),
+                    labelStyle: TextStyle(
+                      color: ActivityPalette.of(context).primary,
+                    ),
                   ),
                 ],
               ),

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:app/domain/models/daily_overview.dart';
 import 'package:app/domain/models/task.dart';
 import 'package:app/domain/value_objects/task_id.dart';
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/dashboard/home_localizations.dart';
 import 'package:app/ui/tasks/view_models/task_actions_view_model.dart';
 import 'package:app/ui/tasks/widgets/task_card.dart';
@@ -40,7 +40,7 @@ class HomeAgenda extends StatelessWidget {
                 ),
                 DecoratedBox(
                   decoration: BoxDecoration(
-                    color: ActivityColors.surfaceStrong,
+                    color: ActivityPalette.of(context).surfaceStrong,
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: Padding(

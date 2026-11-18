@@ -1,3 +1,5 @@
+import 'helpers/profile_ready.dart';
+
 import 'dart:io';
 
 import 'package:flutter/widgets.dart';
@@ -19,6 +21,7 @@ void main() {
       addTearDown(() => directory.delete(recursive: true));
       final container = ProviderContainer(
         overrides: [
+          ...profileReadyOverrides(),
           databaseDirectoryProvider.overrideWithValue(() async => directory),
         ],
       );
@@ -28,8 +31,8 @@ void main() {
       expect(await File(path).exists(), isTrue);
       final db = sqlite3.open(path);
       addTearDown(db.close);
-      expect(db.select('PRAGMA user_version').single.values.single, 5);
-      expect(db.select('SELECT * FROM migrations').length, 5);
+      expect(db.select('PRAGMA user_version').single.values.single, 6);
+      expect(db.select('SELECT * FROM migrations').length, 6);
       expect(db.select('SELECT * FROM tasks'), isNotEmpty);
     },
   );
@@ -40,6 +43,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            ...profileReadyOverrides(),
             databaseInitializationProvider.overrideWith((ref) async {
               calls++;
               return '/unused';
@@ -60,6 +64,7 @@ void main() {
   test('calendar loading propagates database initialization failure', () async {
     final container = ProviderContainer(
       overrides: [
+        ...profileReadyOverrides(),
         databaseInitializationProvider.overrideWith(
           (ref) async => throw StateError('failed'),
         ),
@@ -78,6 +83,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          ...profileReadyOverrides(),
           databaseInitializationProvider.overrideWith(
             (ref) async => throw StateError('private database detail'),
           ),

@@ -1,3 +1,5 @@
+import 'helpers/profile_ready.dart';
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -40,6 +42,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            ...profileReadyOverrides(),
             peopleRepositoryProvider.overrideWith((ref) async => people),
             databaseInitializationProvider.overrideWith(
               (ref) async => 'unused',

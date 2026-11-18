@@ -5,7 +5,7 @@ import 'package:app/domain/value_objects/local_date.dart';
 import 'package:app/domain/value_objects/time_window.dart';
 import 'package:app/domain/value_objects/weekly_days.dart';
 import 'package:app/domain/value_objects/reminder_preference.dart';
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/tasks/task_localizations.dart';
 import 'package:app/ui/tasks/widgets/task_companion_selector.dart';
 import 'package:app/ui/tasks/view_models/task_editor_view_model.dart';
@@ -56,26 +56,26 @@ class TaskEditorSheet extends StatefulWidget {
                         child: Theme(
                           data: Theme.of(context).copyWith(
                             dividerTheme: DividerThemeData(
-                              color: ActivityColors.outline.withValues(
-                                alpha: .3,
-                              ),
+                              color: ActivityPalette.of(context).outline
+                                  .withValues(alpha: .3),
                               thickness: 1,
                             ),
                             inputDecorationTheme: InputDecorationTheme(
                               floatingLabelBehavior:
                                   FloatingLabelBehavior.always,
                               filled: true,
-                              fillColor: const Color(0xfff2f4f0),
+                              fillColor: ActivityPalette.of(context)
+                                  .inputSurface,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(
-                                  color: Color(0xffc1c9c1),
+                                borderSide: BorderSide(
+                                  color: ActivityPalette.of(context).outline,
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(
-                                  color: Color(0xffc1c9c1),
+                                borderSide: BorderSide(
+                                  color: ActivityPalette.of(context).outline,
                                 ),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
@@ -274,14 +274,16 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
                             .toUpperCase(),
                         style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(
-                              color: ActivityColors.mutedInk,
+                              color: ActivityPalette.of(context).mutedInk,
                               letterSpacing: 1,
                             ),
                       ),
                       Text(
                         l.text(d.isNew ? 'createTask' : 'editTask'),
                         style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(color: ActivityColors.primary),
+                            ?.copyWith(
+                              color: ActivityPalette.of(context).primary,
+                            ),
                       ),
                     ],
                   ),
@@ -296,7 +298,7 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
           ),
           Divider(
             height: 1,
-            color: ActivityColors.outline.withValues(alpha: .3),
+            color: ActivityPalette.of(context).outline.withValues(alpha: .3),
           ),
         ],
       );
@@ -331,7 +333,8 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
                           width: 48,
                           height: 5,
                           decoration: BoxDecoration(
-                            color: ActivityColors.outline.withValues(alpha: .6),
+                            color: ActivityPalette.of(context).outline
+                                .withValues(alpha: .6),
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -412,13 +415,17 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
                               for (var i = 0; i < d.tags.length; i++)
                                 InputChip(
                                   label: Text('#${d.tags[i].name}'),
-                                  backgroundColor:
-                                      ActivityColors.primaryContainer,
+                                  backgroundColor: ActivityPalette.of(context)
+                                      .primaryContainer,
                                   labelStyle: Theme.of(context)
                                       .textTheme
                                       .labelMedium
-                                      ?.copyWith(color: Colors.white),
-                                  deleteIconColor: Colors.white,
+                                      ?.copyWith(
+                                        color: ActivityPalette.of(context)
+                                            .onContainerAction,
+                                      ),
+                                  deleteIconColor: ActivityPalette.of(context)
+                                      .onContainerAction,
                                   onDeleted: () => model.removeTag(i),
                                 ),
                             ],
@@ -450,86 +457,158 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
                           Text(l.text('priority')),
                           DecoratedBox(
                             decoration: BoxDecoration(
-                              color: ActivityColors.surfaceMuted,
+                              color: ActivityPalette.of(context).surfaceMuted,
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Padding(
                               padding: const EdgeInsets.all(4),
-                              child: SegmentedButton<TaskPriority>(
-                                segments: [
-                                  for (final p in TaskPriority.values)
-                                    ButtonSegment(
-                                      value: p,
-                                      label: Container(
-                                        key: ValueKey('priority-${p.name}'),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: d.priority == p
-                                              ? ActivityColors.surface
-                                              : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(
-                                            24,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
+                              child:
+                                  MediaQuery.sizeOf(context).width < 500 &&
+                                      MediaQuery.textScalerOf(context)
+                                              .scale(14) >
+                                          20
+                                  ? Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: [
+                                        for (final p in TaskPriority.values)
+                                          ChoiceChip(
+                                            key: ValueKey('priority-${p.name}'),
+                                            materialTapTargetSize:
+                                                MaterialTapTargetSize.padded,
+                                            label: Text(l.text(p.name)),
+                                            avatar: Icon(
                                               Icons.circle,
                                               size: 8,
                                               color: switch (p) {
                                                 TaskPriority.low =>
-                                                  ActivityColors.mutedInk,
+                                                  ActivityPalette.of(context)
+                                                      .mutedInk,
                                                 TaskPriority.medium =>
-                                                  const Color(0xff805300),
+                                                  ActivityPalette.of(context)
+                                                      .mediumInk,
                                                 TaskPriority.high =>
-                                                  const Color(0xff7c2e19),
+                                                  ActivityPalette.of(context)
+                                                      .highInk,
                                               },
                                             ),
-                                            const SizedBox(width: 6),
-                                            Flexible(
-                                              child: Text(l.text(p.name)),
+                                            selected: d.priority == p,
+                                            selectedColor: ActivityPalette.of(
+                                              context,
+                                            ).surface,
+                                            labelStyle: TextStyle(
+                                              color: ActivityPalette.of(context)
+                                                  .ink,
                                             ),
-                                          ],
+                                            checkmarkColor: ActivityPalette.of(
+                                              context,
+                                            ).primary,
+                                            side: BorderSide(
+                                              color: d.priority == p
+                                                  ? ActivityPalette.of(context)
+                                                        .primary
+                                                  : Colors.transparent,
+                                            ),
+                                            onSelected: model.canEdit
+                                                ? (_) => model.change(
+                                                    d.copyWith(priority: p),
+                                                  )
+                                                : null,
+                                          ),
+                                      ],
+                                    )
+                                  : SegmentedButton<TaskPriority>(
+                                      segments: [
+                                        for (final p in TaskPriority.values)
+                                          ButtonSegment(
+                                            value: p,
+                                            label: Container(
+                                              key: ValueKey(
+                                                'priority-${p.name}',
+                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 8,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: d.priority == p
+                                                    ? ActivityPalette.of(
+                                                        context,
+                                                      ).surface
+                                                    : Colors.transparent,
+                                                borderRadius:
+                                                    BorderRadius.circular(24),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.circle,
+                                                    size: 8,
+                                                    color: switch (p) {
+                                                      TaskPriority.low =>
+                                                        ActivityPalette.of(
+                                                          context,
+                                                        ).mutedInk,
+                                                      TaskPriority.medium =>
+                                                        ActivityPalette.of(
+                                                          context,
+                                                        ).mediumInk,
+                                                      TaskPriority.high =>
+                                                        ActivityPalette.of(
+                                                          context,
+                                                        ).highInk,
+                                                    },
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Flexible(
+                                                    child: Text(l.text(p.name)),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                      selected: {d.priority},
+                                      showSelectedIcon: false,
+                                      style: ButtonStyle(
+                                        visualDensity: VisualDensity.standard,
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.padded,
+                                        padding: const WidgetStatePropertyAll(
+                                          EdgeInsets.symmetric(
+                                            horizontal: 0,
+                                            vertical: 0,
+                                          ),
+                                        ),
+                                        shape: WidgetStatePropertyAll(
+                                          RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              24,
+                                            ),
+                                          ),
+                                        ),
+                                        side: const WidgetStatePropertyAll(
+                                          BorderSide.none,
+                                        ),
+                                        backgroundColor:
+                                            const WidgetStatePropertyAll(
+                                              Colors.transparent,
+                                            ),
+                                        foregroundColor: WidgetStatePropertyAll(
+                                          ActivityPalette.of(context).mutedInk,
+                                        ),
+                                        textStyle: WidgetStatePropertyAll(
+                                          Theme.of(context)
+                                              .textTheme
+                                              .labelMedium,
                                         ),
                                       ),
+                                      onSelectionChanged: (v) => model.change(
+                                        d.copyWith(priority: v.first),
+                                      ),
                                     ),
-                                ],
-                                selected: {d.priority},
-                                showSelectedIcon: false,
-                                style: ButtonStyle(
-                                  visualDensity: VisualDensity.standard,
-                                  tapTargetSize: MaterialTapTargetSize.padded,
-                                  padding: const WidgetStatePropertyAll(
-                                    EdgeInsets.symmetric(
-                                      horizontal: 0,
-                                      vertical: 0,
-                                    ),
-                                  ),
-                                  shape: WidgetStatePropertyAll(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(24),
-                                    ),
-                                  ),
-                                  side: const WidgetStatePropertyAll(
-                                    BorderSide.none,
-                                  ),
-                                  backgroundColor: const WidgetStatePropertyAll(
-                                    Colors.transparent,
-                                  ),
-                                  foregroundColor: const WidgetStatePropertyAll(
-                                    ActivityColors.mutedInk,
-                                  ),
-                                  textStyle: WidgetStatePropertyAll(
-                                    Theme.of(context).textTheme.labelMedium,
-                                  ),
-                                ),
-                                onSelectionChanged: (v) =>
-                                    model.change(d.copyWith(priority: v.first)),
-                              ),
                             ),
                           ),
                           const Divider(height: 32),
@@ -647,12 +726,15 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
                               for (final cadence in TaskCadence.values)
                                 ChoiceChip(
                                   label: Text(l.text(cadence.name)),
-                                  labelStyle: const TextStyle(
-                                    color: Color(0xff234f3a),
+                                  labelStyle: TextStyle(
+                                    color: ActivityPalette.of(context).badgeInk,
                                   ),
-                                  checkmarkColor: const Color(0xff234f3a),
-                                  selectedColor: const Color(0xffdbe5df),
-                                  backgroundColor: const Color(0xfff2f4f0),
+                                  checkmarkColor: ActivityPalette.of(context)
+                                      .badgeInk,
+                                  selectedColor: ActivityPalette.of(context)
+                                      .selectedBadge,
+                                  backgroundColor: ActivityPalette.of(context)
+                                      .inputSurface,
                                   selected: d.cadence == cadence,
                                   onSelected: (_) => model.setCadence(cadence),
                                 ),
@@ -661,8 +743,9 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
                                 child: Chip(
                                   label: Text(
                                     l.text('custom'),
-                                    style: const TextStyle(
-                                      color: Color(0xff57615c),
+                                    style: TextStyle(
+                                      color: ActivityPalette.of(context)
+                                          .subtleText,
                                     ),
                                   ),
                                 ),
@@ -697,12 +780,16 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
                                     label: Text(
                                       localizations.narrowWeekdays[day % 7],
                                     ),
-                                    labelStyle: const TextStyle(
-                                      color: Color(0xff234f3a),
+                                    labelStyle: TextStyle(
+                                      color: ActivityPalette.of(context)
+                                          .badgeInk,
                                     ),
-                                    checkmarkColor: const Color(0xff234f3a),
-                                    selectedColor: const Color(0xffdbe5df),
-                                    backgroundColor: const Color(0xfff2f4f0),
+                                    checkmarkColor: ActivityPalette.of(context)
+                                        .badgeInk,
+                                    selectedColor: ActivityPalette.of(context)
+                                        .selectedBadge,
+                                    backgroundColor: ActivityPalette.of(context)
+                                        .inputSurface,
                                     selected:
                                         d.weeklyDays?.contains(day) ?? false,
                                     onSelected: (selected) {

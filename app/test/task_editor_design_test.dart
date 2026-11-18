@@ -82,7 +82,9 @@ void main() {
                 .onPressed,
             isNull,
           );
-          final priority = find.byType(SegmentedButton<TaskPriority>);
+          final priority = largeText
+              ? find.byType(ChoiceChip)
+              : find.byType(SegmentedButton<TaskPriority>);
           await Scrollable.ensureVisible(
             tester.element(
               find.descendant(
@@ -93,21 +95,29 @@ void main() {
             alignment: .5,
           );
           await tester.pumpAndSettle();
-          final control = tester.widget<SegmentedButton<TaskPriority>>(
-            priority,
-          );
-          expect(control.selected, {TaskPriority.low});
-          expect(control.showSelectedIcon, false);
-          expect(
-            control.style?.backgroundColor?.resolve({WidgetState.selected}),
-            Colors.transparent,
-          );
-          final selectedPill = tester.widget<Container>(
-            find.byKey(const ValueKey('priority-low')),
-          );
-          final decoration = selectedPill.decoration! as BoxDecoration;
-          expect(decoration.color, ActivityColors.surface);
-          expect(decoration.borderRadius, BorderRadius.circular(24));
+          if (largeText) {
+            final selected = tester.widget<ChoiceChip>(
+              find.byKey(const ValueKey('priority-low')),
+            );
+            expect(selected.selected, true);
+            expect(selected.selectedColor, ActivityColors.surface);
+          } else {
+            final control = tester.widget<SegmentedButton<TaskPriority>>(
+              priority,
+            );
+            expect(control.selected, {TaskPriority.low});
+            expect(control.showSelectedIcon, false);
+            expect(
+              control.style?.backgroundColor?.resolve({WidgetState.selected}),
+              Colors.transparent,
+            );
+            final selectedPill = tester.widget<Container>(
+              find.byKey(const ValueKey('priority-low')),
+            );
+            final decoration = selectedPill.decoration! as BoxDecoration;
+            expect(decoration.color, ActivityColors.surface);
+            expect(decoration.borderRadius, BorderRadius.circular(24));
+          }
           expect(
             find.descendant(of: priority, matching: find.byIcon(Icons.circle)),
             findsNWidgets(3),

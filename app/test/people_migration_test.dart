@@ -36,7 +36,7 @@ void main() {
         '😀' * 120,
       ]);
       migrateDatabase(db);
-      expect(db.select('PRAGMA user_version').single.values.single, 5);
+      expect(db.select('PRAGMA user_version').single.values.single, 6);
       expect(
         db
             .select(

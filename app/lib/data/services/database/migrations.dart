@@ -10,6 +10,8 @@ import 'package:app/data/services/database/migrations/migration_0004_create_task
 
 import 'package:app/data/services/database/migrations/migration_0005_add_people_metadata.dart';
 
+import 'package:app/data/services/database/migrations/migration_0006_create_local_profile.dart';
+
 export 'package:app/data/services/database/database_migration.dart';
 
 void migrateDatabase(
@@ -28,6 +30,7 @@ void migrateDatabase(
         const Migration0003AddCalendarCompletion(),
         const Migration0004CreateTaskTables(),
         const Migration0005AddPeopleMetadata(),
+        const Migration0006CreateLocalProfile(),
       ];
   for (var i = 0; i < steps.length; i++) {
     if (steps[i].version != i + 1) {

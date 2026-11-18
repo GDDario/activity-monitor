@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app/app/dependencies/task_dependencies.dart';
 import 'package:app/app/dependencies/people_repository_dependencies.dart';
 import 'package:app/domain/models/person.dart';
-import 'package:app/ui/core/theme/activity_colors.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/people/people_localizations.dart';
 import 'package:app/ui/people/view_models/people_view_model.dart';
 import 'package:app/ui/people/views/people_view.dart';
@@ -117,14 +117,15 @@ class _PersonDetailSheetState extends ConsumerState<PersonDetailSheet> {
                         ChoiceChip(
                           label: Text(l.text('newest')),
                           selected: !s.ascending,
-                          selectedColor: ActivityColors.primary,
-                          backgroundColor: ActivityColors.surfaceMuted,
-                          checkmarkColor: Colors.white,
+                          selectedColor: ActivityPalette.of(context).primary,
+                          backgroundColor: ActivityPalette.of(context)
+                              .surfaceMuted,
+                          checkmarkColor: ActivityPalette.of(context).onPrimary,
                           materialTapTargetSize: MaterialTapTargetSize.padded,
                           labelStyle: TextStyle(
                             color: !s.ascending
-                                ? Colors.white
-                                : ActivityColors.primary,
+                                ? ActivityPalette.of(context).onPrimary
+                                : ActivityPalette.of(context).primary,
                           ),
                           onSelected: s.loading
                               ? null
@@ -133,14 +134,15 @@ class _PersonDetailSheetState extends ConsumerState<PersonDetailSheet> {
                         ChoiceChip(
                           label: Text(l.text('oldest')),
                           selected: s.ascending,
-                          selectedColor: ActivityColors.primary,
-                          backgroundColor: ActivityColors.surfaceMuted,
-                          checkmarkColor: Colors.white,
+                          selectedColor: ActivityPalette.of(context).primary,
+                          backgroundColor: ActivityPalette.of(context)
+                              .surfaceMuted,
+                          checkmarkColor: ActivityPalette.of(context).onPrimary,
                           materialTapTargetSize: MaterialTapTargetSize.padded,
                           labelStyle: TextStyle(
                             color: s.ascending
-                                ? Colors.white
-                                : ActivityColors.primary,
+                                ? ActivityPalette.of(context).onPrimary
+                                : ActivityPalette.of(context).primary,
                           ),
                           onSelected: s.loading
                               ? null

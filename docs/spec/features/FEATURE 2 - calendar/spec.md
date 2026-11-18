@@ -8,7 +8,7 @@ Let users explore their scheduled activities by date, cadence, and participant.
 - As a user, I want to filter entries so that I can focus on relevant commitments.
 
 ## Requirements
-1. REQ-CAL-001: The calendar MUST open on the current local date, identify the selected date, offer Today, and show a seven-column month grid including adjacent dates.
+1. REQ-CAL-001: The calendar MUST initially open on the current local date, identify the selected date, offer Today, and show a seven-column month grid including adjacent dates. Once opened, selected date, mode and filters remain in-session across destination navigation and profile preference changes under FEATURE 6 REQ-PRO-010.
 2. REQ-CAL-002: Month and week modes MUST preserve selection when switched; week mode MUST show the seven days containing selection. Previous and next MUST move by the active interval, keeping the day of month where possible and otherwise clamping it.
 3. REQ-CAL-003: Selecting a date MUST select that date, including dates in an adjacent month. Weeks MUST begin Sunday in en-US and pt-BR.
 4. REQ-CAL-004: The grid MUST indicate matching solo/habit, collaborative, and recurring entries with legible indicators and a localized, readable legend. Solo and collaborative indicators MUST use equally sized filled circular bullets in their respective colors; cadence MUST use a separate recurring icon. Indicators on the selected date MUST be slightly larger and separated from the date marker. Dates MUST expose the corresponding category names to assistive technology.
@@ -33,7 +33,7 @@ Let users explore their scheduled activities by date, cadence, and participant.
 - No matching entries shows an empty state; data failure shows an unavailable state without technical details.
 
 ## Acceptance criteria
-Given the calendar opens, when it renders, then today is selected and the current month is shown.
+Given the calendar first opens in a session, when it renders, then today is selected and the current month is shown. Returning within that session preserves the selected date, mode and filters under FEATURE 6 REQ-PRO-010.
 
 Given a selected date, when the mode changes, then that date remains selected and visible.
 

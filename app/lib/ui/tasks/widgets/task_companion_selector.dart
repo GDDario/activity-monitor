@@ -1,3 +1,4 @@
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:flutter/material.dart';
 import 'package:app/domain/models/task.dart';
 import 'package:app/domain/use_cases/build_people_directory.dart';
@@ -67,11 +68,11 @@ class _TaskCompanionSelectorState extends State<TaskCompanionSelector> {
                   materialTapTargetSize: MaterialTapTargetSize.padded,
                   labelStyle: TextStyle(
                     color: selected.any((s) => s.id == p.id)
-                        ? Colors.white
+                        ? ActivityPalette.of(context).onPrimary
                         : Theme.of(context).colorScheme.primary,
                   ),
                   selectedColor: Theme.of(context).colorScheme.primary,
-                  checkmarkColor: Colors.white,
+                  checkmarkColor: ActivityPalette.of(context).onPrimary,
                   selected: selected.any((s) => s.id == p.id),
                   onSelected: !model.canEdit
                       ? null

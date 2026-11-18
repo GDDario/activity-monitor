@@ -78,7 +78,7 @@ void main() {
   );
   test('migration preserves participants and existing links; empty history is explicit', () async {
     final db = sqlite3.open(path);
-    expect(db.select('PRAGMA user_version').single.values.single, 5);
+    expect(db.select('PRAGMA user_version').single.values.single, 6);
     final original =
         db.select('SELECT id FROM calendar_participants').first['id'] as String;
     db.close();

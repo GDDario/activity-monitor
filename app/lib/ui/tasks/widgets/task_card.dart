@@ -1,3 +1,4 @@
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:flutter/material.dart';
 
 import 'package:app/domain/models/task.dart';
@@ -41,12 +42,12 @@ class TaskCard extends StatelessWidget {
           child: Card(
             margin: EdgeInsets.zero,
             color: occurrence.completed
-                ? const Color(0xfff2f4f0)
-                : Colors.white,
+                ? ActivityPalette.of(context).inputSurface
+                : ActivityPalette.of(context).surface,
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: Color(0xffe1e3df)),
+              side: BorderSide(color: ActivityPalette.of(context).border),
             ),
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -72,7 +73,9 @@ class TaskCard extends StatelessWidget {
                           occurrence.completed
                               ? Icons.check_box_rounded
                               : Icons.check_box_outline_blank_rounded,
-                          color: pending ? null : const Color(0xff5d8170),
+                          color: pending
+                              ? null
+                              : ActivityPalette.of(context).completionInk,
                         ),
                       ),
                       Expanded(
@@ -198,7 +201,10 @@ class TaskCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const Divider(height: 20, color: Color(0xffe1e3df)),
+                  Divider(
+                    height: 20,
+                    color: ActivityPalette.of(context).border,
+                  ),
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,
@@ -206,23 +212,23 @@ class TaskCard extends StatelessWidget {
                       _TaskBadge(
                         label: l.text(cadence),
                         color: task.schedule.cadence == TaskCadence.oneTime
-                            ? const Color(0xffeceeeb)
-                            : const Color(0xffdbe5df),
+                            ? ActivityPalette.of(context).neutralBadge
+                            : ActivityPalette.of(context).selectedBadge,
                       ),
                       if (task.priority != TaskPriority.low)
                         _TaskBadge(
                           label: l.text(task.priority.name),
                           color: task.priority == TaskPriority.medium
-                              ? const Color(0xffffe8b5)
-                              : const Color(0xffffdbd2),
+                              ? ActivityPalette.of(context).mediumBadge
+                              : ActivityPalette.of(context).highBadge,
                           foreground: task.priority == TaskPriority.medium
-                              ? const Color(0xff805300)
-                              : const Color(0xff7c2e19),
+                              ? ActivityPalette.of(context).mediumInk
+                              : ActivityPalette.of(context).highInk,
                         ),
                       for (final tag in task.tags)
                         _TaskBadge(
                           label: '#${tag.name.value}',
-                          color: const Color(0xffeceeeb),
+                          color: ActivityPalette.of(context).neutralBadge,
                         ),
                     ],
                   ),
@@ -237,14 +243,10 @@ class TaskCard extends StatelessWidget {
 }
 
 class _TaskBadge extends StatelessWidget {
-  const _TaskBadge({
-    required this.label,
-    required this.color,
-    this.foreground = const Color(0xff234f3a),
-  });
+  const _TaskBadge({required this.label, required this.color, this.foreground});
   final String label;
   final Color color;
-  final Color foreground;
+  final Color? foreground;
   @override
   Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
@@ -255,8 +257,9 @@ class _TaskBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.labelSmall
-            ?.copyWith(color: foreground),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: foreground ?? ActivityPalette.of(context).badgeInk,
+        ),
       ),
     ),
   );
