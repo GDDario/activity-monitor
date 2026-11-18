@@ -22,18 +22,25 @@ import 'package:app/domain/value_objects/weekly_days.dart';
 import 'package:app/ui/tasks/views/task_editor_sheet.dart';
 
 import 'helpers/fake_task_repository.dart';
+import 'helpers/fake_people_repository.dart';
+
+import 'package:app/domain/models/person.dart';
+import 'package:app/app/dependencies/people_repository_dependencies.dart';
 
 void main() {
   testWidgets(
     'capture, completion, cross-screen Undo and filters share committed state',
     (tester) async {
       final repo = FakeTaskRepository();
+      final people = FakePeopleRepository(PeopleSnapshot());
+      addTearDown(people.dispose);
       addTearDown(repo.dispose);
       final now = DateTime(2026, 11, 7, 12);
       var nextId = 0;
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            peopleRepositoryProvider.overrideWith((ref) async => people),
             databaseInitializationProvider.overrideWith(
               (ref) async => 'unused',
             ),

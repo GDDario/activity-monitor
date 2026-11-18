@@ -10,6 +10,7 @@ import 'package:sqlite3/sqlite3.dart';
 import 'package:app/data/services/calendar_database.dart';
 import 'package:app/app/dependencies/database_dependencies.dart';
 import 'package:app/app/dependencies/task_dependencies.dart';
+import 'package:app/app/dependencies/people_repository_dependencies.dart';
 import 'package:app/domain/value_objects/local_date.dart';
 import 'package:app/domain/value_objects/local_date_range.dart';
 import 'package:app/ui/calendar/view_models/calendar_state.dart';
@@ -102,6 +103,9 @@ final calendarViewModelProvider = Provider.autoDispose<CalendarViewModel>((
     },
   );
   ref.listen(taskChangesProvider, (_, value) {
+    value.whenData((_) => unawaited(model.load()));
+  });
+  ref.listen(peopleChangesProvider, (_, value) {
     value.whenData((_) => unawaited(model.load()));
   });
   ref.onDispose(model.dispose);

@@ -67,8 +67,9 @@ from those occurrences. Existing dashboard section labels may adapt to actual
 data; unrelated navigation and focus-session features remain unchanged.
 
 Task creation is personal and local to one device. Existing
-participant associations remain visible and survive edits, but this editor has
-no participant assignment, invitations, synchronization, or authentication. Task
+participant associations remain visible and survive edits. FEATURE 5 People
+extends this editor with optional local, task-wide participant assignment under
+REQ-PEO-004; invitations, synchronization and authentication remain excluded. Task
 details, focus timers, a separate archive, arbitrary custom recurrence, and
 notification delivery are outside this feature. Custom cadence is visibly
 unavailable rather than selectable without functioning behavior.

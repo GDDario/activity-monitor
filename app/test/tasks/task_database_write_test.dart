@@ -151,7 +151,7 @@ void main() {
       final db = sqlite3.open(path);
       expect(db.select('SELECT * FROM tags').length, 1);
       db.execute(
-        "INSERT INTO calendar_participants VALUES ('participant','Alex')",
+        "INSERT INTO calendar_participants(id,name) VALUES ('participant','Alex')",
       );
       db.execute('INSERT INTO task_participants VALUES (?,?)', [
         a.task.id.value,

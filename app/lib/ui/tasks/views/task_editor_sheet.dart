@@ -7,6 +7,7 @@ import 'package:app/domain/value_objects/weekly_days.dart';
 import 'package:app/domain/value_objects/reminder_preference.dart';
 import 'package:app/ui/core/theme/activity_colors.dart';
 import 'package:app/ui/tasks/task_localizations.dart';
+import 'package:app/ui/tasks/widgets/task_companion_selector.dart';
 import 'package:app/ui/tasks/view_models/task_editor_view_model.dart';
 
 class TaskEditorSheet extends StatefulWidget {
@@ -264,7 +265,13 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        l.text('personalTask').toUpperCase(),
+                        l
+                            .text(
+                              (d.participants?.isNotEmpty ?? false)
+                                  ? 'sharedTask'
+                                  : 'personalTask',
+                            )
+                            .toUpperCase(),
                         style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(
                               color: ActivityColors.mutedInk,
@@ -386,6 +393,7 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
                             ),
                           ),
                           const SizedBox(height: 12),
+                          TaskCompanionSelector(model: model),
                           Text(l.text('tags')),
                           if ((state.isDirty || state.showErrors) &&
                               state.fieldErrors.keys.any(

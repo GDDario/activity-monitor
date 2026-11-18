@@ -71,7 +71,7 @@ void main() {
     final links = sqlite3.open(path);
     links.execute('PRAGMA foreign_keys = ON');
     links.execute(
-      "INSERT INTO calendar_participants VALUES ('person', 'Alex')",
+      "INSERT INTO calendar_participants(id,name) VALUES ('person', 'Alex')",
     );
     links.execute("INSERT INTO task_participants VALUES ('task', 'person')");
     links.close();

@@ -41,7 +41,7 @@ void main() {
     final db = sqlite3.openInMemory();
     addTearDown(db.close);
     migrateDatabase(db);
-    expect(db.select('PRAGMA user_version').single.values.single, 4);
+    expect(db.select('PRAGMA user_version').single.values.single, 5);
     db.execute('DELETE FROM tasks');
     db.execute('DELETE FROM calendar_participants');
     db.execute(
@@ -50,7 +50,9 @@ void main() {
     db.execute(
       "INSERT INTO task_occurrences (id, task_id, scheduled_date, effective_date, completed) VALUES ('e', 'task', '2024-02-29', '2024-03-01', 1)",
     );
-    db.execute("INSERT INTO calendar_participants VALUES ('p', 'Lee')");
+    db.execute(
+      "INSERT INTO calendar_participants(id,name) VALUES ('p', 'Lee')",
+    );
     db.execute("INSERT INTO task_participants VALUES ('task', 'p')");
     final result = await CalendarRepository(CalendarDatabase(() async => db))
         .load();
@@ -78,7 +80,7 @@ void main() {
     db.execute('DELETE FROM tasks');
     db.execute('DELETE FROM calendar_participants');
     db.execute(
-      "INSERT INTO calendar_participants VALUES ('person', 'Visible'), ('other', 'No cards in range')",
+      "INSERT INTO calendar_participants(id,name) VALUES ('person', 'Visible'), ('other', 'No cards in range')",
     );
     db.execute(
       "INSERT INTO tasks (id, title, start_date, cadence, notes, priority) VALUES ('task', 'Shared title', '2024-02-01', 'weekly', 'Notes', 'high')",

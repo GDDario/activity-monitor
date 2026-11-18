@@ -8,6 +8,8 @@ import 'package:app/data/services/database/migrations/migration_0002_seed_calend
 import 'package:app/data/services/database/migrations/migration_0003_add_calendar_completion.dart';
 import 'package:app/data/services/database/migrations/migration_0004_create_task_tables.dart';
 
+import 'package:app/data/services/database/migrations/migration_0005_add_people_metadata.dart';
+
 export 'package:app/data/services/database/database_migration.dart';
 
 void migrateDatabase(
@@ -25,6 +27,7 @@ void migrateDatabase(
         Migration0002SeedCalendarExamples(seeder),
         const Migration0003AddCalendarCompletion(),
         const Migration0004CreateTaskTables(),
+        const Migration0005AddPeopleMetadata(),
       ];
   for (var i = 0; i < steps.length; i++) {
     if (steps[i].version != i + 1) {

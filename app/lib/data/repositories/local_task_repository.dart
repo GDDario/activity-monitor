@@ -161,6 +161,10 @@ class LocalTaskRepository implements TaskRepository {
       'history': p.aggregate.history
           .map((h) => _historyRow(p.aggregate.task.id, h))
           .toList(),
+      'participants': p.aggregate.task.participants
+          .map((p) => p.id)
+          .toSet()
+          .toList(),
       'tags': p.aggregate.task.tags
           .map(
             (t) => <String, Object?>{

@@ -33,7 +33,7 @@ void createLegacyTaskFixture(Database db, {int version = 3}) {
     db.execute('DELETE FROM calendar_participants');
   }
   db.execute(
-    "INSERT INTO calendar_participants VALUES ('person', '  Alex 👩🏽‍💻  ')",
+    "INSERT INTO calendar_participants(id,name) VALUES ('person', '  Alex 👩🏽‍💻  ')",
   );
   db.execute(
     'INSERT INTO calendar_entries (id, title, date, cadence) VALUES (?, ?, ?, ?)',

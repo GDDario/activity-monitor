@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app/app/dependencies/database_dependencies.dart';
+import 'package:app/app/dependencies/people_repository_dependencies.dart';
 import 'package:app/data/repositories/local_task_repository.dart';
 import 'package:app/data/repositories/task_repository.dart';
 import 'package:app/data/services/task_database.dart';
@@ -62,7 +63,7 @@ final taskStreakLoaderProvider =
         final repo = await ref.read(taskRepositoryProvider.future);
         final result = await repo.loadStreakHistory(ids, today);
         if (!result.isSuccess) return TaskError(result.failure!);
-        final calculator = CalculateDailyStreak();
+        final calculator = const CalculateDailyStreak();
         final counts = <TaskId, int>{};
         for (final history in result.value!) {
           final count = calculator.execute(history, today);
@@ -135,10 +136,14 @@ final taskEditorFactoryProvider =
           save: (draft) => save.execute(draft, requestedRange: request.range),
           checkOverlap: overlap.execute,
           load: repo.loadTask,
+          loadPeople: () async =>
+              (await ref.read(peopleRepositoryProvider.future))
+                  .loadSnapshot(request.date),
         );
         if (request.taskId != null && request.occurrenceId != null) {
           await model.loadExisting(request.taskId!, request.occurrenceId!);
         }
+        await model.refreshPeople();
         return model;
       },
     );
@@ -150,6 +155,9 @@ final todayViewModelProvider = Provider<TodayViewModel>((ref) {
     loadStreaks: ref.read(taskStreakLoaderProvider),
   );
   ref.listen(taskChangesProvider, (_, value) {
+    value.whenData((_) => unawaited(model.load()));
+  });
+  ref.listen(peopleChangesProvider, (_, value) {
     value.whenData((_) => unawaited(model.load()));
   });
   final lifecycle = AppLifecycleListener(

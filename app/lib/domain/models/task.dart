@@ -137,8 +137,12 @@ class TaskDraft {
     this.hasOccurrenceOverride = false,
     List<DraftTag> tags = const [],
     List<DraftSubtask> subtasks = const [],
+    List<TaskParticipant>? participants,
     this.expected,
-  }) : startDate = startDate ?? date,
+  }) : participants = participants == null
+           ? null
+           : List.unmodifiable(participants),
+       startDate = startDate ?? date,
        tags = List.unmodifiable(tags),
        subtasks = List.unmodifiable(subtasks);
   factory TaskDraft.newTask({
@@ -148,6 +152,7 @@ class TaskDraft {
     taskId: TaskId(newId()),
     occurrenceId: OccurrenceId(newId()),
     date: date,
+    participants: const [],
   );
   factory TaskDraft.fromAggregate(TaskAggregate value) {
     final t = value.task;
@@ -184,6 +189,7 @@ class TaskDraft {
             ),
           )
           .toList(),
+      participants: t.participants,
       expected: value.expected,
     );
   }
@@ -206,6 +212,7 @@ class TaskDraft {
   final bool hasOccurrenceOverride;
   final List<DraftTag> tags;
   final List<DraftSubtask> subtasks;
+  final List<TaskParticipant>? participants;
   final ExpectedRevisions? expected;
   bool get isNew => expected == null;
   TaskDraft copyWith({
@@ -226,6 +233,7 @@ class TaskDraft {
     bool? hasOccurrenceOverride,
     List<DraftTag>? tags,
     List<DraftSubtask>? subtasks,
+    List<TaskParticipant>? participants,
   }) => TaskDraft(
     taskId: taskId,
     occurrenceId: occurrenceId,
@@ -254,6 +262,7 @@ class TaskDraft {
     hasOccurrenceOverride: hasOccurrenceOverride ?? this.hasOccurrenceOverride,
     tags: tags ?? this.tags,
     subtasks: subtasks ?? this.subtasks,
+    participants: participants ?? this.participants,
     expected: expected,
   );
 }

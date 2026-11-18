@@ -5,6 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:toastification/toastification.dart';
 
 import 'package:app/app/activity_monitor_app.dart';
+import 'package:app/app/dependencies/people_repository_dependencies.dart';
+import 'package:app/domain/models/person.dart';
+
+import 'helpers/fake_people_repository.dart';
+
 import 'package:app/ui/core/theme/activity_theme.dart';
 import 'package:app/ui/core/widgets/screen_title_bar.dart';
 
@@ -42,13 +47,22 @@ void main() {
   testWidgets('opens the People base screen from primary navigation', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ProviderScope(child: ActivityMonitorApp()));
+    final people = FakePeopleRepository(PeopleSnapshot());
+    addTearDown(people.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          peopleRepositoryProvider.overrideWith((ref) async => people),
+        ],
+        child: const ActivityMonitorApp(),
+      ),
+    );
 
     await tester.tap(find.text('People'));
     await tester.pumpAndSettle();
 
     expect(find.text('People'), findsWidgets);
-    expect(find.text('Your shared rhythms will appear here.'), findsOneWidget);
+    expect(find.text('New Person'), findsOneWidget);
   });
 
   testWidgets('uses the shared title area on the Calendar base screen', (
