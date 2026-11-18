@@ -16,6 +16,19 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
+## Android build toolchain
+
+The Android build uses Gradle 9.5.0, Android Gradle Plugin 9.3.1, and Kotlin
+Gradle Plugin 2.4.20, matching the installed Flutter SDK's template versions.
+Keep the wrapper distribution in `android/gradle/wrapper/gradle-wrapper.properties`
+and plugin versions in `android/settings.gradle.kts` aligned when upgrading
+Flutter. The app explicitly applies the Kotlin Android plugin while
+`android.builtInKotlin=false` remains configured.
+
+Build a debug APK from this directory with `flutter build apk --debug`. The first
+build after a toolchain upgrade needs network access to download Gradle and the
+updated plugins; Flutter's dependency validation should remain enabled.
+
 ## Local database and development reset
 
 On native platforms the app creates `activity_monitor.db` in the platform's
