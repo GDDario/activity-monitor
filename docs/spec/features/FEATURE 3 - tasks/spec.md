@@ -51,7 +51,16 @@ The calendar retains ownership of navigation, date selection, filters, grid,
 and filtered counts. Its original exclusions of task actions and recurrence
 expansion apply to FEATURE 2; this feature introduces those capabilities.
 
-Creation is available from Today and Calendar; Calendar creation
+Creation MUST be available as a floating action button on Today and Calendar.
+Calendar MUST also replace its Today header action with Create task. Its
+Month/Week selector MUST use Flutter’s built-in `SegmentedButton` and follow
+the rounded pill treatment in the Stitch
+calendar reference, while retaining accessible touch targets and selected
+states. Its selected pill SHOULD slide smoothly between Month and Week,
+and MUST move immediately when the system requests reduced animation.
+Today filters MUST use the same selected and unselected colors as the
+Calendar cadence filters. These controls are explicit user-requested UI
+refinements. Calendar creation
 defaults to its selected date, and Today creation defaults to the current local
 date. Today lists occurrences due today and derives its task counts/progress
 from those occurrences. Existing dashboard section labels may adapt to actual

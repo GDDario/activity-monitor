@@ -15,7 +15,7 @@ void main() {
     );
     migrateDatabase(db, calendarSeeder: seeder);
     final entries = db.select(
-      'SELECT id, title, date, cadence FROM calendar_entries',
+      'SELECT t.id, t.title, o.scheduled_date AS date, t.cadence FROM tasks t JOIN task_occurrences o ON o.task_id = t.id',
     );
     expect(entries, isNotEmpty);
     expect(
@@ -33,8 +33,8 @@ void main() {
       'weekly',
       'one-time',
     });
-    expect(db.select('SELECT * FROM calendar_entry_participants'), isNotEmpty);
-    expect(db.select('SELECT migration, batch FROM migrations').length, 3);
+    expect(db.select('SELECT * FROM task_participants'), isNotEmpty);
+    expect(db.select('SELECT migration, batch FROM migrations').length, 4);
     migrateDatabase(
       db,
       calendarSeeder: CalendarSeeder(
@@ -42,8 +42,8 @@ void main() {
         newId: const Uuid().v7,
       ),
     );
-    expect(db.select('SELECT * FROM calendar_entries').length, entries.length);
-    expect(db.select('SELECT * FROM migrations').length, 3);
+    expect(db.select('SELECT * FROM tasks').length, entries.length);
+    expect(db.select('SELECT * FROM migrations').length, 4);
   });
 
   test('upgrades legacy version one and preserves records', () {
@@ -78,12 +78,12 @@ void main() {
     );
     expect(
       db
-          .select("SELECT title FROM calendar_entries WHERE id = 'existing'")
+          .select("SELECT title FROM tasks WHERE id = 'existing'")
           .single['title'],
       'Saved',
     );
-    expect(db.select('PRAGMA user_version').single.values.single, 3);
-    expect(db.select('SELECT migration, batch FROM migrations').length, 3);
+    expect(db.select('PRAGMA user_version').single.values.single, 4);
+    expect(db.select('SELECT migration, batch FROM migrations').length, 4);
   });
 
   test('rolls back seeding and history when the seeder fails', () {
@@ -112,7 +112,7 @@ void main() {
         newId: const Uuid().v7,
       ),
     );
-    expect(db.select('SELECT * FROM migrations').length, 3);
+    expect(db.select('SELECT * FROM migrations').length, 4);
   });
 
   test(
@@ -124,9 +124,9 @@ void main() {
       db.execute(
         'DELETE FROM migrations WHERE id = (SELECT MIN(id) FROM migrations)',
       );
-      final entriesBefore = db.select('SELECT * FROM calendar_entries').length;
+      final entriesBefore = db.select('SELECT * FROM tasks').length;
       expect(() => migrateDatabase(db), throwsStateError);
-      expect(db.select('SELECT * FROM calendar_entries').length, entriesBefore);
+      expect(db.select('SELECT * FROM tasks').length, entriesBefore);
     },
   );
 
@@ -154,8 +154,8 @@ void main() {
     final db = sqlite3.openInMemory();
     addTearDown(db.close);
     migrateDatabase(db);
-    db.execute('DELETE FROM calendar_entries');
+    db.execute('DELETE FROM tasks');
     migrateDatabase(db);
-    expect(db.select('SELECT * FROM calendar_entries'), isEmpty);
+    expect(db.select('SELECT * FROM tasks'), isEmpty);
   });
 }

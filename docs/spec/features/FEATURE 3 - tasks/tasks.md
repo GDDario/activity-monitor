@@ -560,6 +560,99 @@ and does not treat sample cards as user data. Covers AC-TSK-001, 029 and 032.
 - [x] Test then refresh Today on resume/local-day rollover without changing an explicit Calendar selection.
 - [x] Refactor and verify foundation/navigation/localization regressions without adding focus-session or collaboration workflows.
 
+## Task 28: Requested Today and Calendar control refinements
+
+- [x] Add regression checks for floating creation on both screens, Calendar
+  header creation with the selected date, and themed Today filter states.
+- [x] Implement floating creation using the shared Scaffold slot, preserving
+  date defaults and loading/error guards; move Undo above it and reserve scroll
+  space. Source review and static analysis pass; runtime verification pending.
+- [x] Replace Calendar's Today action with Create task and implement the Stitch
+  pill treatment with independent rounded segments and 48-pixel touch targets.
+- [x] Apply Calendar's selected/unselected filter colors to Today.
+- [x] Run Dart formatting and Flutter analysis successfully.
+- [x] Verify fresh full-suite results, including creation/filter regressions.
+  Original Red attempts were blocked; the fresh recheck reproduced missing FAB
+  semantics and obsolete assertions before the corrections passed.
+- [x] Review fresh compact/wide/doubled-text Today and Calendar screenshots
+  against the reference HTML/image; verify localized floating controls.
+
+## Task 29: Use the built-in Calendar segmented button
+
+- [x] Add a widget regression requiring a real `SegmentedButton<bool>` with
+  Month/Week selection, the reference's inset white selected pill and no
+  checkmark; retain selected-date/navigation coverage.
+- [x] Replace custom TextButton interaction/semantics with `SegmentedButton`,
+  decorating its labels to preserve fully rounded selected ends and shadow.
+- [x] Run formatting and static analysis; both pass.
+- [x] Verify widget/full tests and fresh compact/wide/enlarged-text rendered
+  comparisons. Both native selection states remain reachable and visible.
+
+The requested commit/push before this replacement was attempted but Git could
+not create `index.lock`: the linked worktree's Git metadata is mounted read-only.
+Nothing was committed or pushed, and all implementation changes remain local.
+
+## Task 30: Fit the Calendar toggle capsule to its labels
+
+- [x] Add a regression that the visible capsule hugs the label height while
+  the native segmented button retains a 48-pixel touch target.
+- [x] Reduce label padding and size the neutral capsule to scaled typography,
+  independently of the native touch target; preserve both selection states.
+- [x] Run formatting and static analysis; both pass.
+- [x] Verify current sizing regressions, full suite and reference/large-text
+  rendering. Historical Red execution was blocked; current Green is verified.
+
+## Task 31: Slightly enlarge the Calendar toggle and selected pill
+
+- [x] Increase label typography and pill padding together, keeping the visible
+  capsule between the earlier oversized and undersized versions.
+- [x] Update the sizing regression; formatting and static analysis pass.
+- [x] Verify tests and fresh rendered sizing at compact, wide and doubled-text
+  sizes, including en-US and pt-BR.
+
+## Task 32: Slide the selected Calendar mode pill
+
+- [x] Add regression checks for intermediate movement in both directions,
+  native selection, and immediate updates with reduced motion enabled.
+- [x] Animate a single decorative pill beneath the native segmented button,
+  retaining current sizing, keyboard behavior and selected-date preservation.
+- [x] Formatting and static analysis pass; focused and full tests attempted.
+- [x] Verify both directions/intermediate movement and reduced-motion widget
+  tests; review fresh Month/Week endpoint screenshots.
+
+## Task 33: Remove the oversized mode-chip click highlight
+
+- [x] Remove native ripple/state overlays that paint beyond the visible chip,
+  retaining the sliding selection, native hit targets and keyboard focus cue.
+- [x] Update the regression; formatting and static analysis pass.
+- [x] Verify widget/full tests, native selection/focus styles and fresh endpoint
+  rendering; no oversized native pressed/focus overlay remains.
+
+## Task 34: Recheck task creation against Stitch before Home
+
+- [x] Compare the reference HTML/image with existing editor captures and current
+  source; identify missing personal-task eyebrow, header separation, persistently
+  visible empty-form labels and restrained priority styling.
+- [x] Add `task_editor_design_test.dart` with en-US/pt-BR, compact and doubled
+  text cases, native priority interaction and disabled initial submission checks.
+- [x] Correct header eyebrow/separator, light drag handle, permanently visible
+  labels and neutral/dot priority styling. Formatting and direct Dart analysis
+  report no errors or warnings (existing SDK deprecation infos remain).
+- [x] Verify new design regressions against the real SDK: fresh Red exposed
+  doubled-text overflow and inaccessible priority targeting; corrections pass.
+  Further visual Red/Green checks verify tag contrast and compact controls.
+- [x] Rerun task/editor/recurrence/persistence/accessibility tests and capture
+  fresh matching-viewport Create/Edit/validation/saving screens.
+- [x] Identify the board items from the user's authenticated `gh` response:
+  Tasks #10 is In Progress; Home #7 is Todo and has an empty body.
+- [x] Prepare `.scratches/recheck-tasks.sh` to collect all checks, an Android
+  debug build and fresh production-style screenshot fixtures in one local run.
+- [x] Finish Tasks #10 only after fresh checks and visual review pass, then
+  start Home #7 from project 15 with `gh`. Commit `0627006` is pushed; #10 is
+  closed and its card is Done. #7 is In Progress with its initial specification
+  drafted for the required review gate. Authenticated network/runtime access
+  works; the historical sandbox blockers are resolved.
+
 ## Final validation and handoff
 
 After Tasks 1–27, validate the completed feature and record evidence. This
@@ -599,6 +692,14 @@ Before handing this checklist to an implementing agent, manually verify the two 
 | AC-TSK-029 | 17–19, 26–27 |
 | AC-TSK-030–032 | 4–6, 17–18, 26–27 |
 | AC-TSK-033–035 | 21–27 and final visual validation |
+
+## Task 35: Resolve fresh runtime and visual regressions
+
+- [x] Reproduce missing FAB labels, stale text-button/filter assertions and the 320px doubled-text editor overflow in the fresh full suite.
+- [x] Add localized FAB tooltips, align interaction tests with icon buttons, preserve scaled calendar measurements and let oversized editor headings scroll above fixed actions.
+- [x] Verify the focused 49-test run and fresh 356-test full suite.
+- [x] Reproduce and fix enlarged-text title/control crowding and unreadable selected editor tags found in fresh images; verify behavior regressions first.
+- [x] Repeat final formatting, analysis (informational notices nonfatal), all 358 tests, 46-image screenshot review and Android debug build after all fixes. Evidence: `.scratches/task-recheck/20261117-231159/`.
 
 ## Assumptions to review
 

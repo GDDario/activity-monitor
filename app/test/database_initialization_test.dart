@@ -10,16 +10,16 @@ void main() {
   test(
     'initializes a fresh database and preserves data on reopening',
     () async {
-      final directory = await Directory.systemTemp.createTemp(
-        'activity_database_',
-      );
+      Directory('../.scratches').createSync(recursive: true);
+      final directory = await Directory('../.scratches')
+          .createTemp('activity_database_');
       addTearDown(() => directory.delete(recursive: true));
       final path = '${directory.path}/activity_monitor.db';
       initializeDatabaseAtPath(path);
       final first = sqlite3.open(path);
-      expect(first.select('PRAGMA user_version').single.values.single, 3);
+      expect(first.select('PRAGMA user_version').single.values.single, 4);
       first.execute(
-        "INSERT INTO calendar_entries (id, title, date, cadence) VALUES ('id', 'Walk', '2024-02-29', 'daily')",
+        "INSERT INTO tasks (id, title, start_date, cadence) VALUES ('id', 'Walk', '2024-02-29', 'daily')",
       );
       first.close();
       initializeDatabaseAtPath(path);
@@ -27,7 +27,7 @@ void main() {
       addTearDown(reopened.close);
       expect(
         reopened
-            .select("SELECT title FROM calendar_entries WHERE id = 'id'")
+            .select("SELECT title FROM tasks WHERE id = 'id'")
             .single['title'],
         'Walk',
       );
@@ -45,29 +45,32 @@ void main() {
     expect(db.select('SELECT value FROM preserved').single['value'], 'kept');
   });
 
-  test('enforces persisted schema constraints on a reopened database', () async {
-    final directory = await Directory.systemTemp.createTemp(
-      'activity_integrity_',
-    );
-    addTearDown(() => directory.delete(recursive: true));
-    final path = '${directory.path}/activity_monitor.db';
-    initializeDatabaseAtPath(path);
-    final db = sqlite3.open(path);
-    addTearDown(db.close);
-    db.execute('PRAGMA foreign_keys = ON');
-    expect(
-      () => db.execute(
-        "INSERT INTO calendar_entries (id, title, date, cadence) VALUES ('invalid', '', '2024-01-01', 'daily')",
-      ),
-      throwsA(isA<SqliteException>()),
-    );
-    expect(
-      () => db.execute(
-        "INSERT INTO calendar_entry_participants VALUES ('missing', 'missing')",
-      ),
-      throwsA(isA<SqliteException>()),
-    );
-  });
+  test(
+    'enforces persisted schema constraints on a reopened database',
+    () async {
+      Directory('../.scratches').createSync(recursive: true);
+      final directory = await Directory('../.scratches')
+          .createTemp('activity_integrity_');
+      addTearDown(() => directory.delete(recursive: true));
+      final path = '${directory.path}/activity_monitor.db';
+      initializeDatabaseAtPath(path);
+      final db = sqlite3.open(path);
+      addTearDown(db.close);
+      db.execute('PRAGMA foreign_keys = ON');
+      expect(
+        () => db.execute(
+          "INSERT INTO tasks (id, title, start_date, cadence) VALUES ('invalid', '', '2024-01-01', 'daily')",
+        ),
+        throwsA(isA<SqliteException>()),
+      );
+      expect(
+        () => db.execute(
+          "INSERT INTO task_participants VALUES ('missing', 'missing')",
+        ),
+        throwsA(isA<SqliteException>()),
+      );
+    },
+  );
 
   test('applies only pending migrations to an existing database', () {
     final db = sqlite3.openInMemory();

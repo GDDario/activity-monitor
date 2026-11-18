@@ -1,3 +1,5 @@
+import 'package:app/ui/core/widgets/screen_title_bar.dart';
+import 'package:app/ui/core/theme/activity_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,8 +11,8 @@ void main() {
   testWidgets('shows the daily activity overview', (WidgetTester tester) async {
     await tester.pumpWidget(const ProviderScope(child: ActivityMonitorApp()));
 
-    expect(find.text('Good morning'), findsOneWidget);
-    expect(find.text('Morning focus'), findsOneWidget);
+    expect(find.text('Your daily rhythm'), findsOneWidget);
+    expect(find.byTooltip('Create task'), findsOneWidget);
     expect(find.text('Today'), findsOneWidget);
     expect(
       Localizations.localeOf(tester.element(find.byType(Scaffold))),
@@ -111,7 +113,39 @@ void main() {
       find.widgetWithText(FilterChip, 'All activities'),
     );
 
-    expect(selectedFilter.selectedColor, isNull);
-    expect(selectedFilter.labelStyle?.color, const Color(0xFF191C1A));
+    expect(selectedFilter.selectedColor, const Color(0xFF15422E));
+    expect(selectedFilter.labelStyle?.color, Colors.white);
+  });
+  testWidgets('enlarged compact title uses the full content width', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ActivityTheme.light(),
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(2)),
+          child: child!,
+        ),
+        home: const Scaffold(
+          body: Padding(
+            padding: EdgeInsets.all(16),
+            child: ScreenTitleBar(
+              title: 'Calendar',
+              phrase: 'A gentler view ahead',
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(
+      tester.getSize(find.text('Calendar')).width,
+      greaterThanOrEqualTo(280),
+    );
+    expect(tester.takeException(), isNull);
   });
 }
