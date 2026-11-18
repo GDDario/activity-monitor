@@ -5,11 +5,12 @@ import 'package:app/data/repositories/task_repository.dart';
 import 'package:app/data/services/task_database.dart';
 import 'package:app/data/services/task_row_mapper.dart';
 import 'package:app/domain/models/task.dart';
+import 'package:app/domain/models/task_ordering.dart';
 import 'package:app/domain/models/task_result.dart';
-import 'package:app/domain/value_objects/task_id.dart';
-import 'package:app/domain/value_objects/occurrence_id.dart';
 import 'package:app/domain/value_objects/local_date.dart';
 import 'package:app/domain/value_objects/local_date_range.dart';
+import 'package:app/domain/value_objects/occurrence_id.dart';
+import 'package:app/domain/value_objects/task_id.dart';
 
 class LocalTaskRepository implements TaskRepository {
   LocalTaskRepository(this.database);
@@ -293,21 +294,6 @@ class LocalTaskRepository implements TaskRepository {
 
   @override
   Future<void> dispose() => _changes.close();
-}
-
-int compareTaskAggregates(TaskAggregate a, TaskAggregate b) {
-  final completion = (a.occurrence.completed ? 1 : 0).compareTo(
-    b.occurrence.completed ? 1 : 0,
-  );
-  if (completion != 0) return completion;
-  final time = (a.occurrence.timeWindow?.startMinute ?? 1440).compareTo(
-    b.occurrence.timeWindow?.startMinute ?? 1440,
-  );
-  if (time != 0) return time;
-  final title = a.task.title.value.compareTo(b.task.title.value);
-  return title != 0
-      ? title
-      : a.occurrence.id.value.compareTo(b.occurrence.id.value);
 }
 
 Map<String, Object?> _expect(ExpectedRevisions e) => {

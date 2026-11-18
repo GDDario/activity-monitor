@@ -299,8 +299,13 @@ unavailable rather than selectable without functioning behavior.
   occurrences do not reserve a conflicting window. The advisory
   checks the selected occurrence's effective date, not every future repeat.
 - **Visibility and ordering:** Deleted occurrences contribute to no visible
-  task count, calendar indicator, subtask summary, or streak. Pending cards precede completed cards; within each group timed occurrences
-  sort by start time, untimed occurrences last, then title and identity.
+  task count, calendar indicator, subtask summary, or streak. Pending cards
+  precede completed cards; within each status group timed occurrences sort by
+  start time, untimed occurrences last, then title and identity. The approved
+  [Home specification](../FEATURE%204%20-%20home%20screen/spec.md), H05, extends
+  Today with day-period sections and applies this ordering inside each section.
+  Calendar retains the existing flat ordering. This Home extension does not
+  change occurrence identity or mutation semantics.
 - **Recovery:** Undo is an inverse mutation conditional on the action still
   being current. It restores the previous occurrence state rather than
   creating another task. Expiry does not undo a successful action.

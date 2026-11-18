@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app/app/dependencies/database_dependencies.dart';
@@ -9,14 +10,14 @@ import 'package:app/data/repositories/task_repository.dart';
 import 'package:app/data/services/task_database.dart';
 import 'package:app/domain/models/task.dart';
 import 'package:app/domain/models/task_result.dart';
-import 'package:app/domain/use_cases/save_task.dart';
-import 'package:app/domain/use_cases/ensure_task_occurrences.dart';
 import 'package:app/domain/use_cases/calculate_daily_streak.dart';
 import 'package:app/domain/use_cases/check_task_overlap.dart';
 import 'package:app/domain/use_cases/complete_task_occurrence.dart';
-import 'package:app/domain/use_cases/reopen_task_occurrence.dart';
-import 'package:app/domain/use_cases/postpone_task_occurrence.dart';
 import 'package:app/domain/use_cases/delete_task_occurrence.dart';
+import 'package:app/domain/use_cases/ensure_task_occurrences.dart';
+import 'package:app/domain/use_cases/postpone_task_occurrence.dart';
+import 'package:app/domain/use_cases/reopen_task_occurrence.dart';
+import 'package:app/domain/use_cases/save_task.dart';
 import 'package:app/domain/use_cases/undo_task_occurrence_action.dart';
 import 'package:app/domain/value_objects/local_date.dart';
 import 'package:app/domain/value_objects/local_date_range.dart';
@@ -142,7 +143,7 @@ final taskEditorFactoryProvider =
       },
     );
 
-final todayViewModelProvider = Provider.autoDispose<TodayViewModel>((ref) {
+final todayViewModelProvider = Provider<TodayViewModel>((ref) {
   final model = TodayViewModel(
     clock: ref.read(taskClockProvider),
     load: ref.read(ensureTaskRangeProvider),
@@ -151,7 +152,10 @@ final todayViewModelProvider = Provider.autoDispose<TodayViewModel>((ref) {
   ref.listen(taskChangesProvider, (_, value) {
     value.whenData((_) => unawaited(model.load()));
   });
-  final lifecycle = AppLifecycleListener(onResume: model.refreshForLocalDay);
+  final lifecycle = AppLifecycleListener(
+    onStateChange: (state) =>
+        model.setResumed(state == AppLifecycleState.resumed),
+  );
   ref.onDispose(() {
     lifecycle.dispose();
     model.dispose();

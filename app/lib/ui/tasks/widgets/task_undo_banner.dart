@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:app/ui/tasks/task_localizations.dart';
 import 'package:app/ui/tasks/view_models/task_actions_view_model.dart';
 
@@ -20,6 +21,29 @@ class TaskUndoBanner extends StatelessWidget {
           ? null
           : localizations.text(model.messageKey!);
       if (message == null) return const SizedBox.shrink();
+      final copy = Text(
+        message,
+        style: const TextStyle(color: Color(0xffeff1ed)),
+      );
+      final recovery = <Widget>[
+        if (model.canUndo) ...[
+          Text(
+            '${model.remainingSeconds}s',
+            style: const TextStyle(color: Color(0xffc1c9c1)),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xffa2d1b5),
+              disabledForegroundColor: const Color(0xffc1c9c1),
+              minimumSize: const Size(48, 48),
+            ),
+            onPressed: model.isUndoPending
+                ? null
+                : () => model.undoLatest(sequence: model.undoSequence),
+            child: Text(localizations.text('undo')),
+          ),
+        ],
+      ];
       return Focus(
         onFocusChange: model.setFocused,
         child: Semantics(
@@ -29,28 +53,30 @@ class TaskUndoBanner extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      message,
-                      style: const TextStyle(color: Color(0xffeff1ed)),
-                    ),
-                  ),
-                  if (model.canUndo)
-                    Text(
-                      '${model.remainingSeconds}s',
-                      style: const TextStyle(color: Color(0xffc1c9c1)),
-                    ),
-                  if (model.canUndo)
-                    TextButton(
-                      onPressed: model.isUndoPending
-                          ? null
-                          : () =>
-                                model.undoLatest(sequence: model.undoSequence),
-                      child: Text(localizations.text('undo')),
-                    ),
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth < 360 &&
+                      MediaQuery.textScalerOf(context).scale(14) > 20) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        copy,
+                        if (recovery.isNotEmpty)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: recovery,
+                          ),
+                      ],
+                    );
+                  }
+                  return Row(
+                    children: [
+                      Expanded(child: copy),
+                      ...recovery,
+                    ],
+                  );
+                },
               ),
             ),
           ),

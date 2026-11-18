@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:app/domain/models/task.dart';
 import 'package:app/ui/tasks/task_localizations.dart';
 import 'package:app/ui/tasks/view_models/task_actions_view_model.dart';
@@ -12,11 +13,13 @@ class TaskCard extends StatelessWidget {
     required this.actions,
     required this.onEdit,
     this.streak,
+    this.showNotesPreview = false,
   });
   final TaskAggregate aggregate;
   final TaskActionsViewModel actions;
   final VoidCallback onEdit;
   final int? streak;
+  final bool showNotesPreview;
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +93,16 @@ class TaskCard extends StatelessWidget {
                                         : null,
                                   ),
                             ),
+                            if (showNotesPreview &&
+                                task.notes.trim().isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                task.notes,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
                             const SizedBox(height: 4),
                             if (occurrence.completed)
                               Text(

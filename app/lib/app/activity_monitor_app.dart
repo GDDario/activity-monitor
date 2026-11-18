@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:toastification/toastification.dart';
 
 import 'package:app/app/dependencies/app_dependencies.dart';
 import 'package:app/ui/core/theme/activity_theme.dart';
+import 'package:app/ui/dashboard/home_localizations.dart';
 import 'package:app/ui/tasks/task_localizations.dart';
 
 class ActivityMonitorApp extends ConsumerWidget {
@@ -21,6 +23,7 @@ class ActivityMonitorApp extends ConsumerWidget {
         routerConfig: ref.watch(appRouterProvider),
         localizationsDelegates: const [
           TaskLocalizationsDelegate(),
+          HomeLocalizationsDelegate(),
           ...GlobalMaterialLocalizations.delegates,
         ],
         supportedLocales: const [Locale('en', 'US'), Locale('pt', 'BR')],

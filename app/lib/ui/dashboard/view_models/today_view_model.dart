@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import 'package:app/domain/models/daily_overview.dart';
 import 'package:app/domain/models/task.dart';
 import 'package:app/domain/models/task_result.dart';
+import 'package:app/domain/use_cases/build_daily_overview.dart';
 import 'package:app/domain/value_objects/local_date.dart';
 import 'package:app/domain/value_objects/local_date_range.dart';
 import 'package:app/domain/value_objects/task_id.dart';
@@ -12,18 +14,27 @@ enum TodayFilter { all, solo, shared }
 
 class TodayState {
   TodayState({
+    required this.now,
     List<TaskAggregate> entries = const [],
     this.isLoading = true,
     this.failure,
-    this.filter = TodayFilter.all,
+    this.scope = const DailyTaskScope.all(),
+    this.overview,
     Map<TaskId, int> streaks = const {},
   }) : entries = List.unmodifiable(entries),
        streaks = Map.unmodifiable(streaks);
+  final DateTime now;
   final List<TaskAggregate> entries;
   final bool isLoading;
   final TaskFailure? failure;
-  final TodayFilter filter;
+  final DailyTaskScope scope;
+  final DailyOverview? overview;
   final Map<TaskId, int> streaks;
+  TodayFilter get filter => switch (scope.kind) {
+    DailyScopeKind.solo => TodayFilter.solo,
+    DailyScopeKind.shared => TodayFilter.shared,
+    _ => TodayFilter.all,
+  };
 }
 
 class TodayViewModel extends ChangeNotifier {
@@ -32,10 +43,15 @@ class TodayViewModel extends ChangeNotifier {
     required Future<TaskResult<List<TaskAggregate>>> Function(LocalDateRange)
     load,
     Stream<TaskChange>? changes,
-    this._loadStreaks,
-  }) : _loadRange = load {
+    Future<TaskResult<Map<TaskId, int>>> Function(Set<TaskId>, LocalDate)?
+    loadStreaks,
+    BuildDailyOverview overview = const BuildDailyOverview(),
+  }) : _loadRange = load,
+       _loadStreaks = loadStreaks,
+       _overview = overview {
+    _state = TodayState(now: clock().toLocal());
     _subscription = changes?.listen((_) => unawaited(this.load()));
-    _scheduleMidnight();
+    _scheduleMinute();
   }
 
   final DateTime Function() clock;
@@ -43,37 +59,49 @@ class TodayViewModel extends ChangeNotifier {
   _loadRange;
   final Future<TaskResult<Map<TaskId, int>>> Function(Set<TaskId>, LocalDate)?
   _loadStreaks;
+  final BuildDailyOverview _overview;
   StreamSubscription<TaskChange>? _subscription;
-  Timer? _midnight;
-  TodayState _state = TodayState();
+  Timer? _minuteTimer;
+  late TodayState _state;
   TodayState get state => _state;
-  LocalDate? _loadedDay;
+  LocalDate? _loadedDay, _loadingDay;
   int _sequence = 0;
-  bool _disposed = false;
+  bool _disposed = false, _resumed = true;
 
   LocalDate get today {
-    final now = clock().toLocal();
-    return LocalDate(now.year, now.month, now.day);
+    final local = clock().toLocal();
+    return LocalDate(local.year, local.month, local.day);
   }
 
-  List<TaskAggregate> get visible => _state.entries
-      .where(
-        (a) => switch (_state.filter) {
-          TodayFilter.all => true,
-          TodayFilter.solo => a.task.participants.isEmpty,
-          TodayFilter.shared => a.task.participants.isNotEmpty,
-        },
-      )
-      .toList(growable: false);
-  int get pendingCount => visible.where((a) => !a.occurrence.completed).length;
-  int get doneCount => visible.where((a) => a.occurrence.completed).length;
+  List<TaskAggregate> get visible => _state.overview?.entries ?? const [];
+  int get pendingCount => _state.overview?.progress.pending ?? 0;
+  int get doneCount => _state.overview?.progress.completed ?? 0;
 
-  void setFilter(TodayFilter filter) {
+  void setFilter(TodayFilter filter) => setScope(switch (filter) {
+    TodayFilter.all => const DailyTaskScope.all(),
+    TodayFilter.solo => const DailyTaskScope.solo(),
+    TodayFilter.shared => const DailyTaskScope.shared(),
+  });
+
+  void setScope(DailyTaskScope scope) {
+    if (_disposed) return;
+    _publish(scope: scope);
+  }
+
+  void _publish({DailyTaskScope? scope}) {
+    final now = clock().toLocal();
+    final requested = scope ?? _state.scope;
+    final data =
+        !_state.isLoading && _state.failure == null && _loadedDay == today
+        ? _overview.execute(entries: _state.entries, now: now, scope: requested)
+        : null;
     _state = TodayState(
+      now: now,
       entries: _state.entries,
       isLoading: _state.isLoading,
       failure: _state.failure,
-      filter: filter,
+      scope: data?.scope ?? requested,
+      overview: data,
       streaks: _state.streaks,
     );
     notifyListeners();
@@ -83,9 +111,11 @@ class TodayViewModel extends ChangeNotifier {
     if (_disposed) return;
     final sequence = ++_sequence;
     final date = today;
+    _loadingDay = date;
     _state = TodayState(
+      now: clock().toLocal(),
       entries: _state.entries,
-      filter: _state.filter,
+      scope: _state.scope,
       streaks: _state.streaks,
     );
     notifyListeners();
@@ -96,6 +126,7 @@ class TodayViewModel extends ChangeNotifier {
       result = TaskError(TaskFailure(TaskFailureCode.storageUnavailable));
     }
     if (_disposed || sequence != _sequence) return;
+    if (date != today) return load();
     final entries = result.value ?? <TaskAggregate>[];
     var failure = result.failure;
     var streaks = <TaskId, int>{};
@@ -110,37 +141,63 @@ class TodayViewModel extends ChangeNotifier {
         history = TaskError(TaskFailure(TaskFailureCode.storageUnavailable));
       }
       if (_disposed || sequence != _sequence) return;
+      if (date != today) return load();
       streaks = history.value ?? {};
       failure = history.failure;
     }
     _loadedDay = date;
+    _loadingDay = null;
     _state = TodayState(
+      now: clock().toLocal(),
       entries: failure == null ? entries : const [],
       isLoading: false,
       failure: failure,
-      filter: _state.filter,
+      scope: _state.scope,
       streaks: streaks,
     );
-    notifyListeners();
+    _publish();
   }
 
-  void refreshForLocalDay() {
-    if (_loadedDay != today) unawaited(load());
-    _scheduleMidnight();
-  }
-
-  void _scheduleMidnight() {
-    _midnight?.cancel();
+  void refreshForClock() {
     if (_disposed) return;
+    if (_loadedDay != today && _loadingDay != today) {
+      unawaited(load());
+    } else {
+      _publish();
+    }
+    _scheduleMinute();
+  }
+
+  void refreshForLocalDay() => refreshForClock();
+
+  void setResumed(bool resumed) {
+    if (_disposed) return;
+    _resumed = resumed;
+    if (resumed) {
+      refreshForClock();
+    } else {
+      _minuteTimer?.cancel();
+    }
+  }
+
+  void _scheduleMinute() {
+    _minuteTimer?.cancel();
+    if (_disposed || !_resumed) return;
     final now = clock().toLocal();
-    final midnight = DateTime(now.year, now.month, now.day + 1);
-    _midnight = Timer(midnight.difference(now), refreshForLocalDay);
+    final next = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+      now.minute + 1,
+    );
+    _minuteTimer = Timer(next.difference(now), refreshForClock);
   }
 
   @override
   void dispose() {
     _disposed = true;
-    _midnight?.cancel();
+    _minuteTimer?.cancel();
     _subscription?.cancel();
     super.dispose();
   }

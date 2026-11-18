@@ -1,17 +1,21 @@
-import 'package:app/ui/core/widgets/screen_title_bar.dart';
-import 'package:app/ui/core/theme/activity_theme.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:toastification/toastification.dart';
 
 import 'package:app/app/activity_monitor_app.dart';
+import 'package:app/ui/core/theme/activity_theme.dart';
+import 'package:app/ui/core/widgets/screen_title_bar.dart';
 
 void main() {
   testWidgets('shows the daily activity overview', (WidgetTester tester) async {
     await tester.pumpWidget(const ProviderScope(child: ActivityMonitorApp()));
 
-    expect(find.text('Your daily rhythm'), findsOneWidget);
+    expect(
+      find.textContaining(RegExp('Good (morning|afternoon|evening)')),
+      findsOneWidget,
+    );
     expect(find.byTooltip('Create task'), findsOneWidget);
     expect(find.text('Today'), findsOneWidget);
     expect(

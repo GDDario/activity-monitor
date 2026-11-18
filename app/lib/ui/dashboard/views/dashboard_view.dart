@@ -1,28 +1,32 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app/app/dependencies/task_dependencies.dart';
+import 'package:app/domain/models/daily_overview.dart';
 import 'package:app/ui/core/theme/activity_colors.dart';
 import 'package:app/ui/core/widgets/application_shell.dart';
-import 'package:app/ui/core/widgets/screen_title_bar.dart';
-import 'package:app/ui/dashboard/view_models/today_view_model.dart';
+import 'package:app/ui/dashboard/home_localizations.dart';
+import 'package:app/ui/dashboard/widgets/home_agenda.dart';
+import 'package:app/ui/dashboard/widgets/home_filters.dart';
+import 'package:app/ui/dashboard/widgets/home_header.dart';
+import 'package:app/ui/dashboard/widgets/home_summary.dart';
 import 'package:app/ui/tasks/task_localizations.dart';
 import 'package:app/ui/tasks/views/open_task_editor.dart';
-import 'package:app/ui/tasks/widgets/task_card.dart';
 import 'package:app/ui/tasks/widgets/task_undo_banner.dart';
 
 class DashboardView extends ConsumerWidget {
   const DashboardView({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final model = ref.watch(todayViewModelProvider);
-    final actions = ref.watch(taskActionsViewModelProvider);
-    final l = TaskLocalizations.of(context);
+    final model = ref.watch(todayViewModelProvider),
+        actions = ref.watch(taskActionsViewModelProvider);
+    final l = TaskLocalizations.of(context),
+        home = HomeLocalizations.of(context);
     return ListenableBuilder(
       listenable: model,
       builder: (context, _) {
-        final state = model.state;
+        final state = model.state, overview = state.overview;
         return ApplicationShell(
           destination: AppDestination.today,
           floatingActionButton: FloatingActionButton(
@@ -43,35 +47,12 @@ class DashboardView extends ConsumerWidget {
               ListView(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 192),
                 children: [
-                  ScreenTitleBar(
-                    title: l.text('todayTitle'),
-                    phrase: l.text('todayPhrase'),
-                  ),
+                  HomeHeader(now: state.now),
                   const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final filter in TodayFilter.values)
-                        FilterChip(
-                          label: Text(l.text(filter.name)),
-                          selected: state.filter == filter,
-                          selectedColor: ActivityColors.primary,
-                          backgroundColor: ActivityColors.surfaceMuted,
-                          labelStyle: TextStyle(
-                            color: state.filter == filter
-                                ? Colors.white
-                                : ActivityColors.mutedInk,
-                          ),
-                          showCheckmark: false,
-                          side: BorderSide(
-                            color: state.filter == filter
-                                ? ActivityColors.primary
-                                : ActivityColors.outline.withValues(alpha: .4),
-                          ),
-                          onSelected: (_) => model.setFilter(filter),
-                        ),
-                    ],
+                  HomeFilters(
+                    scope: state.scope,
+                    companions: overview?.companions ?? const [],
+                    onSelected: model.setScope,
                   ),
                   const SizedBox(height: 24),
                   if (state.isLoading)
@@ -83,82 +64,35 @@ class DashboardView extends ConsumerWidget {
                       icon: const Icon(Icons.refresh),
                       label: Text(l.text('retry')),
                     ),
-                  ] else ...[
-                    Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: const BorderSide(color: ActivityColors.outline),
+                  ] else if (overview != null) ...[
+                    HomeSummary(progress: overview.progress),
+                    const SizedBox(height: 24),
+                    if (overview.entries.isEmpty) ...[
+                      Text(
+                        state.scope == const DailyTaskScope.all()
+                            ? l.text('empty')
+                            : home.text('filterEmpty'),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l.text('progress').toUpperCase(),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelMedium,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    l.counts(
-                                      model.pendingCount,
-                                      model.doneCount,
-                                    ),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (model.visible.isNotEmpty)
-                              SizedBox(
-                                width: 56,
-                                height: 56,
-                                child: Semantics(
-                                  label: l.counts(
-                                    model.pendingCount,
-                                    model.doneCount,
-                                  ),
-                                  child: CircularProgressIndicator(
-                                    value:
-                                        model.doneCount / model.visible.length,
-                                    strokeWidth: 6,
-                                    strokeCap: StrokeCap.round,
-                                    backgroundColor:
-                                        ActivityColors.surfaceStrong,
-                                  ),
-                                ),
-                              ),
-                          ],
+                      TextButton(
+                        onPressed: () =>
+                            model.setScope(const DailyTaskScope.all()),
+                        child: Text(home.text('reset')),
+                      ),
+                    ],
+                    HomeAgenda(
+                      sections: overview.sections,
+                      actions: actions,
+                      streaks: state.streaks,
+                      onEdit: (aggregate) => openTaskEditor(
+                        context,
+                        ref,
+                        TaskEditorRequest(
+                          date: aggregate.occurrence.effectiveDate,
+                          taskId: aggregate.task.id,
+                          occurrenceId: aggregate.occurrence.id,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    if (model.visible.isEmpty) Text(l.text('empty')),
-                    for (final aggregate in model.visible)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: TaskCard(
-                          aggregate: aggregate,
-                          actions: actions,
-                          streak: state.streaks[aggregate.task.id],
-                          onEdit: () => openTaskEditor(
-                            context,
-                            ref,
-                            TaskEditorRequest(
-                              date: aggregate.occurrence.effectiveDate,
-                              taskId: aggregate.task.id,
-                              occurrenceId: aggregate.occurrence.id,
-                            ),
-                          ),
-                        ),
-                      ),
                   ],
                 ],
               ),
