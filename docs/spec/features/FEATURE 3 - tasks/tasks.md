@@ -647,12 +647,11 @@ Nothing was committed or pushed, and all implementation changes remain local.
   Tasks #10 is In Progress; Home #7 is Todo and has an empty body.
 - [x] Prepare `.scratches/recheck-tasks.sh` to collect all checks, an Android
   debug build and fresh production-style screenshot fixtures in one local run.
-- [ ] Finish Tasks #10 only after fresh checks and visual review pass, then
-  start Home #7 from project 15 with `gh`.
-  Blocked: `gh project view`, GraphQL and `gh auth refresh --scopes project`
-  cannot connect to GitHub in the sandbox. Flutter cannot write SDK cache
-  stamps, and ADB cannot open its local server socket. Do not infer task
-  completion or invent the Home issue's requirements from these failures.
+- [x] Finish Tasks #10 only after fresh checks and visual review pass, then
+  start Home #7 from project 15 with `gh`. Commit `0627006` is pushed; #10 is
+  closed and its card is Done. #7 is In Progress with its initial specification
+  drafted for the required review gate. Authenticated network/runtime access
+  works; the historical sandbox blockers are resolved.
 
 ## Final validation and handoff
 

@@ -268,3 +268,12 @@ outside this UI correction. The APK builds successfully and retains the SDK's
 future Kotlin-plugin migration warning. Neither notice is a current build or
 behavior failure. Historical sandbox/network restrictions no longer apply;
 authenticated `gh` access to issues and project 15 was verified.
+
+## GitHub completion
+
+Corrections were committed and pushed as `0627006` on
+`feature/10-tasks-implementation` after checking local time (outside
+09:00–18:00). Issue #10 is closed as completed and its project 15 card is Done.
+Home issue #7 was then moved to In Progress; its initial specification is a
+review draft under `FEATURE 4 - home screen`, with no implementation plan,
+task checklist or production Home behavior added before approval.
