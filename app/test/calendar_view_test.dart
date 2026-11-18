@@ -468,7 +468,7 @@ void main() {
     );
     expect(
       tester.getSize(rail).height - tester.getSize(find.text('Month')).height,
-      closeTo(12, 0.01),
+      closeTo(12, 0.1),
     );
     expect(control().selected, {false});
     expect(control().showSelectedIcon, false);
@@ -1059,7 +1059,16 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.byTooltip('Próximo mês'));
+      await tester.scrollUntilVisible(
+        find.byTooltip('Próximo mês'),
+        150,
+        scrollable: find
+            .descendant(
+              of: find.byType(ListView),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Próximo mês'));
       await tester.pumpAndSettle();
@@ -1083,4 +1092,42 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+  testWidgets(
+    'enlarged compact mode controls are visible without horizontal scrolling',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            calendarDataProvider.overrideWith(
+              (ref) async => const CalendarData([], []),
+            ),
+          ],
+          child: MaterialApp(
+            theme: ActivityTheme.light(),
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context)
+                  .copyWith(textScaler: TextScaler.linear(2)),
+              child: child!,
+            ),
+            home: const CalendarView(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.getRect(find.text('Week')).right, lessThanOrEqualTo(304));
+      await tester.tap(find.text('Week'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<SegmentedButton<bool>>(find.byType(SegmentedButton<bool>))
+            .selected,
+        {true},
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

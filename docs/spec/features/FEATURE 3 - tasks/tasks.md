@@ -571,12 +571,11 @@ and does not treat sample cards as user data. Covers AC-TSK-001, 029 and 032.
   pill treatment with independent rounded segments and 48-pixel touch targets.
 - [x] Apply Calendar's selected/unselected filter colors to Today.
 - [x] Run Dart formatting and Flutter analysis successfully.
-- [ ] Confirm expected Red failures and passing regression/full tests.
-  Blocked: sandbox rejects Flutter's local test server socket (errno 1).
-  Both focused and full test attempts failed during loading, before assertions.
-- [ ] Verify rendered compact/enlarged-text layouts and matching-viewport
-  screenshots. Blocked by the same runtime restriction; no running app or Dart
-  MCP was available for hot reload. Reference HTML/image were inspected.
+- [x] Verify fresh full-suite results, including creation/filter regressions.
+  Original Red attempts were blocked; the fresh recheck reproduced missing FAB
+  semantics and obsolete assertions before the corrections passed.
+- [x] Review fresh compact/wide/doubled-text Today and Calendar screenshots
+  against the reference HTML/image; verify localized floating controls.
 
 ## Task 29: Use the built-in Calendar segmented button
 
@@ -586,9 +585,8 @@ and does not treat sample cards as user data. Covers AC-TSK-001, 029 and 032.
 - [x] Replace custom TextButton interaction/semantics with `SegmentedButton`,
   decorating its labels to preserve fully rounded selected ends and shadow.
 - [x] Run formatting and static analysis; both pass.
-- [ ] Verify widget/full tests and inspect a rendered reference comparison,
-  compact layouts and enlarged text. Attempts are blocked before assertions
-  because the sandbox forbids Flutter's local test socket (errno 1).
+- [x] Verify widget/full tests and fresh compact/wide/enlarged-text rendered
+  comparisons. Both native selection states remain reachable and visible.
 
 The requested commit/push before this replacement was attempted but Git could
 not create `index.lock`: the linked worktree's Git metadata is mounted read-only.
@@ -601,18 +599,16 @@ Nothing was committed or pushed, and all implementation changes remain local.
 - [x] Reduce label padding and size the neutral capsule to scaled typography,
   independently of the native touch target; preserve both selection states.
 - [x] Run formatting and static analysis; both pass.
-- [ ] Confirm Red/Green/full tests and reference/large-text rendering. Focused
-  and full suite attempts fail before assertions because this sandbox forbids
-  Flutter's local server socket. Runtime and hot reload remain unavailable.
+- [x] Verify current sizing regressions, full suite and reference/large-text
+  rendering. Historical Red execution was blocked; current Green is verified.
 
 ## Task 31: Slightly enlarge the Calendar toggle and selected pill
 
 - [x] Increase label typography and pill padding together, keeping the visible
   capsule between the earlier oversized and undersized versions.
 - [x] Update the sizing regression; formatting and static analysis pass.
-- [ ] Verify tests and rendered sizing. Full tests were attempted; execution
-  remains blocked by the sandbox's restriction on Flutter's local test socket.
-  No running app/Dart MCP is available for hot reload or screenshot comparison.
+- [x] Verify tests and fresh rendered sizing at compact, wide and doubled-text
+  sizes, including en-US and pt-BR.
 
 ## Task 32: Slide the selected Calendar mode pill
 
@@ -621,18 +617,42 @@ Nothing was committed or pushed, and all implementation changes remain local.
 - [x] Animate a single decorative pill beneath the native segmented button,
   retaining current sizing, keyboard behavior and selected-date preservation.
 - [x] Formatting and static analysis pass; focused and full tests attempted.
-- [ ] Verify animation tests and rendered movement. Test loading is blocked by
-  the sandbox's local socket restriction, before assertions. No running app or
-  Dart MCP is available for hot reload or visual verification.
+- [x] Verify both directions/intermediate movement and reduced-motion widget
+  tests; review fresh Month/Week endpoint screenshots.
 
 ## Task 33: Remove the oversized mode-chip click highlight
 
 - [x] Remove native ripple/state overlays that paint beyond the visible chip,
   retaining the sliding selection, native hit targets and keyboard focus cue.
 - [x] Update the regression; formatting and static analysis pass.
-- [ ] Verify widget/full tests and click/keyboard rendering. Test attempts
-  remain blocked at loading by the sandbox's local socket restriction.
-  No runtime is available for hot reload or screenshot verification.
+- [x] Verify widget/full tests, native selection/focus styles and fresh endpoint
+  rendering; no oversized native pressed/focus overlay remains.
+
+## Task 34: Recheck task creation against Stitch before Home
+
+- [x] Compare the reference HTML/image with existing editor captures and current
+  source; identify missing personal-task eyebrow, header separation, persistently
+  visible empty-form labels and restrained priority styling.
+- [x] Add `task_editor_design_test.dart` with en-US/pt-BR, compact and doubled
+  text cases, native priority interaction and disabled initial submission checks.
+- [x] Correct header eyebrow/separator, light drag handle, permanently visible
+  labels and neutral/dot priority styling. Formatting and direct Dart analysis
+  report no errors or warnings (existing SDK deprecation infos remain).
+- [x] Verify new design regressions against the real SDK: fresh Red exposed
+  doubled-text overflow and inaccessible priority targeting; corrections pass.
+  Further visual Red/Green checks verify tag contrast and compact controls.
+- [x] Rerun task/editor/recurrence/persistence/accessibility tests and capture
+  fresh matching-viewport Create/Edit/validation/saving screens.
+- [x] Identify the board items from the user's authenticated `gh` response:
+  Tasks #10 is In Progress; Home #7 is Todo and has an empty body.
+- [x] Prepare `.scratches/recheck-tasks.sh` to collect all checks, an Android
+  debug build and fresh production-style screenshot fixtures in one local run.
+- [ ] Finish Tasks #10 only after fresh checks and visual review pass, then
+  start Home #7 from project 15 with `gh`.
+  Blocked: `gh project view`, GraphQL and `gh auth refresh --scopes project`
+  cannot connect to GitHub in the sandbox. Flutter cannot write SDK cache
+  stamps, and ADB cannot open its local server socket. Do not infer task
+  completion or invent the Home issue's requirements from these failures.
 
 ## Final validation and handoff
 
@@ -673,6 +693,14 @@ Before handing this checklist to an implementing agent, manually verify the two 
 | AC-TSK-029 | 17–19, 26–27 |
 | AC-TSK-030–032 | 4–6, 17–18, 26–27 |
 | AC-TSK-033–035 | 21–27 and final visual validation |
+
+## Task 35: Resolve fresh runtime and visual regressions
+
+- [x] Reproduce missing FAB labels, stale text-button/filter assertions and the 320px doubled-text editor overflow in the fresh full suite.
+- [x] Add localized FAB tooltips, align interaction tests with icon buttons, preserve scaled calendar measurements and let oversized editor headings scroll above fixed actions.
+- [x] Verify the focused 49-test run and fresh 356-test full suite.
+- [x] Reproduce and fix enlarged-text title/control crowding and unreadable selected editor tags found in fresh images; verify behavior regressions first.
+- [x] Repeat final formatting, analysis (informational notices nonfatal), all 358 tests, 46-image screenshot review and Android debug build after all fixes. Evidence: `.scratches/task-recheck/20261117-231159/`.
 
 ## Assumptions to review
 

@@ -62,6 +62,7 @@ class CalendarView extends ConsumerWidget {
     return ApplicationShell(
       destination: AppDestination.calendar,
       floatingActionButton: FloatingActionButton(
+        tooltip: taskStrings.text('createTask'),
         onPressed: canCreate ? createTask : null,
         backgroundColor: ActivityColors.primary,
         foregroundColor: Colors.white,
@@ -81,29 +82,39 @@ class CalendarView extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               LayoutBuilder(
-                builder: (context, constraints) => SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: canCreate ? createTask : null,
-                          icon: const Icon(Icons.add),
-                          label: Text(taskStrings.text('createTask')),
-                        ),
-                        const SizedBox(width: 12),
-                        _CalendarModeToggle(
-                          weekMode: calendar.weekMode,
-                          monthLabel: tr('Month', 'Mês'),
-                          weekLabel: tr('Week', 'Semana'),
-                          onChanged: model.setWeekMode,
-                        ),
-                      ],
+                builder: (context, constraints) {
+                  final create = OutlinedButton.icon(
+                    onPressed: canCreate ? createTask : null,
+                    icon: const Icon(Icons.add),
+                    label: Text(taskStrings.text('createTask')),
+                  );
+                  final mode = _CalendarModeToggle(
+                    weekMode: calendar.weekMode,
+                    monthLabel: tr('Month', 'Mês'),
+                    weekLabel: tr('Week', 'Semana'),
+                    onChanged: model.setWeekMode,
+                  );
+                  if (constraints.maxWidth < 500 &&
+                      MediaQuery.textScalerOf(context).scale(14) > 20) {
+                    return Wrap(
+                      spacing: 12,
+                      runSpacing: 8,
+                      children: [create, mode],
+                    );
+                  }
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: constraints.maxWidth,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [create, const SizedBox(width: 12), mode],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 12),
               Card(

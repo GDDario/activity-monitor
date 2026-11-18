@@ -26,6 +26,7 @@ class DashboardView extends ConsumerWidget {
         return ApplicationShell(
           destination: AppDestination.today,
           floatingActionButton: FloatingActionButton(
+            tooltip: l.text('createTask'),
             onPressed: state.isLoading || state.failure != null
                 ? null
                 : () => openTaskEditor(

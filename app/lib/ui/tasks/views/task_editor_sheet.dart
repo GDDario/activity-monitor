@@ -5,6 +5,7 @@ import 'package:app/domain/value_objects/local_date.dart';
 import 'package:app/domain/value_objects/time_window.dart';
 import 'package:app/domain/value_objects/weekly_days.dart';
 import 'package:app/domain/value_objects/reminder_preference.dart';
+import 'package:app/ui/core/theme/activity_colors.dart';
 import 'package:app/ui/tasks/task_localizations.dart';
 import 'package:app/ui/tasks/view_models/task_editor_view_model.dart';
 
@@ -53,7 +54,15 @@ class TaskEditorSheet extends StatefulWidget {
                         ),
                         child: Theme(
                           data: Theme.of(context).copyWith(
+                            dividerTheme: DividerThemeData(
+                              color: ActivityColors.outline.withValues(
+                                alpha: .3,
+                              ),
+                              thickness: 1,
+                            ),
                             inputDecorationTheme: InputDecorationTheme(
+                              floatingLabelBehavior:
+                                  FloatingLabelBehavior.always,
                               filled: true,
                               fillColor: const Color(0xfff2f4f0),
                               border: OutlineInputBorder(
@@ -240,6 +249,50 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
       final locked = state.isLoading || state.isSaving;
       final localizations = MaterialLocalizations.of(context);
       final date = DateTime(d.date.year, d.date.month, d.date.day);
+      // Keep actions reachable when localized, enlarged headings need more room.
+      final scrollHeader =
+          MediaQuery.sizeOf(context).width < 360 &&
+          MediaQuery.textScalerOf(context).scale(14) > 20;
+      final header = Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l.text('personalTask').toUpperCase(),
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              color: ActivityColors.mutedInk,
+                              letterSpacing: 1,
+                            ),
+                      ),
+                      Text(
+                        l.text(d.isNew ? 'createTask' : 'editTask'),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(color: ActivityColors.primary),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: l.text('close'),
+                  onPressed: locked ? null : dismiss,
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+          ),
+          Divider(
+            height: 1,
+            color: ActivityColors.outline.withValues(alpha: .3),
+          ),
+        ],
+      );
       return PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, _) {
@@ -271,31 +324,14 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
                           width: 48,
                           height: 5,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.outlineVariant,
+                            color: ActivityColors.outline.withValues(alpha: .6),
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                       ),
                     ),
                   ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          l.text(d.isNew ? 'createTask' : 'editTask'),
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: l.text('close'),
-                        onPressed: locked ? null : dismiss,
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                ),
+                if (!scrollHeader) header,
                 if (state.isLoadFailed && state.failure != null)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -309,6 +345,7 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          if (scrollHeader) header,
                           Text(
                             l.text('taskDetails'),
                             style: Theme.of(context).textTheme.titleSmall,
@@ -367,6 +404,13 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
                               for (var i = 0; i < d.tags.length; i++)
                                 InputChip(
                                   label: Text('#${d.tags[i].name}'),
+                                  backgroundColor:
+                                      ActivityColors.primaryContainer,
+                                  labelStyle: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium
+                                      ?.copyWith(color: Colors.white),
+                                  deleteIconColor: Colors.white,
                                   onDeleted: () => model.removeTag(i),
                                 ),
                             ],
@@ -396,17 +440,89 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
                             ],
                           ),
                           Text(l.text('priority')),
-                          SegmentedButton<TaskPriority>(
-                            segments: [
-                              for (final p in TaskPriority.values)
-                                ButtonSegment(
-                                  value: p,
-                                  label: Text(l.text(p.name)),
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: ActivityColors.surfaceMuted,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: SegmentedButton<TaskPriority>(
+                                segments: [
+                                  for (final p in TaskPriority.values)
+                                    ButtonSegment(
+                                      value: p,
+                                      label: Container(
+                                        key: ValueKey('priority-${p.name}'),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: d.priority == p
+                                              ? ActivityColors.surface
+                                              : Colors.transparent,
+                                          borderRadius: BorderRadius.circular(
+                                            24,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.circle,
+                                              size: 8,
+                                              color: switch (p) {
+                                                TaskPriority.low =>
+                                                  ActivityColors.mutedInk,
+                                                TaskPriority.medium =>
+                                                  const Color(0xff805300),
+                                                TaskPriority.high =>
+                                                  const Color(0xff7c2e19),
+                                              },
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Flexible(
+                                              child: Text(l.text(p.name)),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                                selected: {d.priority},
+                                showSelectedIcon: false,
+                                style: ButtonStyle(
+                                  visualDensity: VisualDensity.standard,
+                                  tapTargetSize: MaterialTapTargetSize.padded,
+                                  padding: const WidgetStatePropertyAll(
+                                    EdgeInsets.symmetric(
+                                      horizontal: 0,
+                                      vertical: 0,
+                                    ),
+                                  ),
+                                  shape: WidgetStatePropertyAll(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(24),
+                                    ),
+                                  ),
+                                  side: const WidgetStatePropertyAll(
+                                    BorderSide.none,
+                                  ),
+                                  backgroundColor: const WidgetStatePropertyAll(
+                                    Colors.transparent,
+                                  ),
+                                  foregroundColor: const WidgetStatePropertyAll(
+                                    ActivityColors.mutedInk,
+                                  ),
+                                  textStyle: WidgetStatePropertyAll(
+                                    Theme.of(context).textTheme.labelMedium,
+                                  ),
                                 ),
-                            ],
-                            selected: {d.priority},
-                            onSelectionChanged: (v) =>
-                                model.change(d.copyWith(priority: v.first)),
+                                onSelectionChanged: (v) =>
+                                    model.change(d.copyWith(priority: v.first)),
+                              ),
+                            ),
                           ),
                           const Divider(height: 32),
                           Focus(

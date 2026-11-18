@@ -49,20 +49,16 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(
-          find.widgetWithText(FloatingActionButton, 'Create task'),
-          findsOneWidget,
-        );
+        expect(find.byType(FloatingActionButton), findsOneWidget);
         expect(
           find.widgetWithText(OutlinedButton, 'Create task'),
           findsOneWidget,
         );
         expect(find.widgetWithText(OutlinedButton, 'Today'), findsNothing);
         await tester.tap(
-          find.widgetWithText(
-            floating ? FloatingActionButton : OutlinedButton,
-            'Create task',
-          ),
+          floating
+              ? find.byType(FloatingActionButton)
+              : find.widgetWithText(OutlinedButton, 'Create task'),
         );
         await tester.pumpAndSettle();
         expect(requested, LocalDate(2024, 2, 29));

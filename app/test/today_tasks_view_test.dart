@@ -34,10 +34,7 @@ void main() {
     );
     expect(find.text('Read a chapter'), findsNothing);
     expect(find.text('4 of 7 completed'), findsNothing);
-    expect(
-      find.widgetWithText(FloatingActionButton, 'Create task'),
-      findsOneWidget,
-    );
+    expect(find.byType(FloatingActionButton), findsOneWidget);
     for (final chip in tester.widgetList<FilterChip>(find.byType(FilterChip))) {
       expect(chip.selectedColor, ActivityColors.primary);
       expect(chip.backgroundColor, ActivityColors.surfaceMuted);
