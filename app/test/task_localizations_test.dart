@@ -15,7 +15,7 @@ void main() {
 
   test('reminder preferences never promise delivery', () {
     const l = TaskLocalizations(Locale('en', 'US'));
-    expect(l.text('reminderInactive'), contains('not active'));
+    expect(l.text('reminderInactive'), contains('Check notification delivery'));
   });
 
   test('failures become safe localized text', () {

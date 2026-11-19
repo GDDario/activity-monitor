@@ -31,8 +31,8 @@ void main() {
       expect(await File(path).exists(), isTrue);
       final db = sqlite3.open(path);
       addTearDown(db.close);
-      expect(db.select('PRAGMA user_version').single.values.single, 6);
-      expect(db.select('SELECT * FROM migrations').length, 6);
+      expect(db.select('PRAGMA user_version').single.values.single, 7);
+      expect(db.select('SELECT * FROM migrations').length, 7);
       expect(db.select('SELECT * FROM tasks'), isNotEmpty);
     },
   );

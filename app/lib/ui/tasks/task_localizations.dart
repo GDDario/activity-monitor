@@ -72,7 +72,7 @@ class TaskLocalizations {
     'reminder': 'Reminder',
     'off': 'Off',
     'atStart': 'At start',
-    'reminderInactive': 'Preference only. Notifications are not active yet.',
+    'reminderInactive': 'Check notification delivery using the bell.',
     'cadence': 'Cadence frequency',
     'oneTime': 'One-Time',
     'daily': 'Daily Habit',
@@ -172,8 +172,7 @@ class TaskLocalizations {
     'reminder': 'Lembrete',
     'off': 'Desativado',
     'atStart': 'No início',
-    'reminderInactive':
-        'Somente preferência. As notificações ainda não estão ativas.',
+    'reminderInactive': 'Confira a entrega das notificações no sino.',
     'cadence': 'Frequência',
     'oneTime': 'Uma vez',
     'daily': 'Hábito diário',

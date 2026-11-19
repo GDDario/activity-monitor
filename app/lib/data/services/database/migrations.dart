@@ -12,6 +12,8 @@ import 'package:app/data/services/database/migrations/migration_0005_add_people_
 
 import 'package:app/data/services/database/migrations/migration_0006_create_local_profile.dart';
 
+import 'package:app/data/services/database/migrations/migration_0007_create_notification_settings.dart';
+
 export 'package:app/data/services/database/database_migration.dart';
 
 void migrateDatabase(
@@ -31,6 +33,7 @@ void migrateDatabase(
         const Migration0004CreateTaskTables(),
         const Migration0005AddPeopleMetadata(),
         const Migration0006CreateLocalProfile(),
+        const Migration0007CreateNotificationSettings(),
       ];
   for (var i = 0; i < steps.length; i++) {
     if (steps[i].version != i + 1) {

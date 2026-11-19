@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
+import 'package:app/ui/notifications/views/notification_panel.dart';
 import 'package:app/ui/profile/widgets/profile_avatar.dart';
 
 import 'package:app/ui/core/theme/activity_palette.dart';
@@ -50,17 +51,7 @@ class ScreenTitleBar extends StatelessWidget {
       ),
       IconButton(
         tooltip: pt ? 'Abrir notificações' : 'Open notifications',
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                pt
-                    ? 'As notificações ainda não estão disponíveis.'
-                    : 'Notifications are not available yet.',
-              ),
-            ),
-          );
-        },
+        onPressed: () => showNotifications(context),
         icon: const Icon(Icons.notifications_none_outlined),
       ),
     ];

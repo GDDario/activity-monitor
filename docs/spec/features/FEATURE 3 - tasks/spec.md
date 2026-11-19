@@ -133,12 +133,14 @@ unavailable rather than selectable without functioning behavior.
    Windows are within one local calendar day; overnight windows
    are rejected with field guidance. Past dates are permitted.
 8. **REQ-TSK-008 — Reminder preferences:** Timed tasks MUST support saving and
-   reopening a reminder preference. No permission request, scheduled alert,
-   sound, or delivery guarantee MUST be introduced. Reminder information on
-   cards and in the editor MUST explicitly communicate that it is a saved
-   preference and notifications are not yet active. Options are
-   Off, At start, 5, 15, 30, or 60 minutes before, defaulting to Off; the
-   reference's Calm Chime is a future delivery treatment, not a sound selector.
+   reopening a reminder preference. Saving task preferences MUST NOT itself
+   prompt for permission or guarantee delivery. Cards and the editor MUST direct
+   users to the notification bell to check delivery status. Permission, opt-in,
+   native scheduling and recovery are governed by
+   [FEATURE 7 — notifications](../FEATURE%207%20-%20notifications/spec.md), which
+   supersedes this feature's initial inactive-delivery presentation.
+   Options remain Off, At start, 5, 15, 30, or 60 minutes before, defaulting to Off;
+   Calm Chime is not a sound selector.
 9. **REQ-TSK-009 — Cadence:** The editor MUST support one-time, daily, and
    weekly cadence. Weekly MUST reveal weekday selection and require at least
    one day. Daily MUST reveal streak tracking and an optional morning,

@@ -45,7 +45,7 @@ void main() {
               .toList(),
       };
       migrateDatabase(db);
-      expect(db.select('PRAGMA user_version').single.values.single, 6);
+      expect(db.select('PRAGMA user_version').single.values.single, 7);
       expect(db.select('SELECT * FROM local_profile'), isEmpty);
       for (final table in before.keys) {
         expect(

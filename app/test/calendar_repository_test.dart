@@ -41,7 +41,7 @@ void main() {
     final db = sqlite3.openInMemory();
     addTearDown(db.close);
     migrateDatabase(db);
-    expect(db.select('PRAGMA user_version').single.values.single, 6);
+    expect(db.select('PRAGMA user_version').single.values.single, 7);
     db.execute('DELETE FROM tasks');
     db.execute('DELETE FROM calendar_participants');
     db.execute(

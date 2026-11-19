@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:toastification/toastification.dart';
 import 'package:app/app/dependencies/app_dependencies.dart';
 import 'package:app/app/dependencies/profile_dependencies.dart';
+import 'package:app/app/dependencies/notification_dependencies.dart';
 import 'package:app/domain/models/local_profile.dart';
 import 'package:app/ui/core/theme/activity_theme.dart';
 import 'package:app/ui/dashboard/home_localizations.dart';
@@ -36,6 +37,7 @@ class _ActivityMonitorAppState extends ConsumerState<ActivityMonitorApp> {
       listenable: session,
       builder: (context, _) {
         final p = session.state.profile;
+        if (p != null) ref.watch(notificationViewModelProvider);
         return ToastificationWrapper(
           child: MaterialApp.router(
             title: 'Activity Monitor',
