@@ -181,7 +181,7 @@ void main() {
     expect(find.text('1 of 1 done'), findsOneWidget);
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
     expect(
-      find.text('Preference only. Notifications are not active yet.'),
+      find.text('Check notification delivery using the bell.'),
       findsOneWidget,
     );
     actions.dispose();

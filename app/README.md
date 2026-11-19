@@ -96,11 +96,16 @@ one-time stops further repeats from the effective boundary. Daily streaks use
 original scheduled dates, including intentional backfilled completions, and
 never count future dates.
 
-Timed tasks can save reminder preferences, but this release does not request
-notification permission, schedule alerts, or play sounds. The UI labels these
-preferences as inactive. Custom recurrence, participant assignment/invitations,
-remote synchronization, authentication, storage encryption and web persistence
-are not introduced.
+Timed tasks support Off, At start, 5, 15, 30 and 60 minute reminders. Open the
+notification bell to explicitly enable native delivery and grant permission.
+Android and iOS schedule notifications through the operating system; other
+platforms retain preferences and show unsupported status. Android timing is
+approximate unless precise alarms are authorized, and device restrictions may
+still delay delivery. The queue contains at most 64 reminders firing in the next
+30 days; reopening/resuming the app replenishes recurring reminders. See
+`docs/spec/features/FEATURE 7 - notifications/` for behavior and verification.
+Notification permission is never requested merely by starting the app or saving
+a task.
 
 Completion and deletion offer the latest five-active-second Undo window.
 Remaining time survives navigation between Today and Calendar, uses elapsed

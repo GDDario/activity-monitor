@@ -105,7 +105,7 @@ void main() {
     expect(result['failure'], 'storageUnavailable');
     expect((await repo.load()).value!.name.value, 'Robin');
     final db = sqlite3.open(path);
-    expect(db.select('PRAGMA user_version').single.values.single, 6);
+    expect(db.select('PRAGMA user_version').single.values.single, 7);
     db.close();
   });
   test(
