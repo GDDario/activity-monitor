@@ -3,14 +3,15 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
-import 'package:app/data/services/database/app_database.dart';
-import 'package:app/data/services/profile_database.dart';
-import 'package:app/data/repositories/profile_repository.dart';
-import 'package:app/domain/models/local_profile.dart';
-import 'package:app/data/repositories/avatar_repository.dart';
-import 'package:app/data/services/avatar_services.dart';
 
 import 'helpers/profile_image_fixture.dart';
+
+import 'package:app/data/repositories/avatar_repository.dart';
+import 'package:app/data/repositories/profile_repository.dart';
+import 'package:app/data/services/avatar_services.dart';
+import 'package:app/data/services/database/app_database.dart';
+import 'package:app/data/services/profile_database.dart';
+import 'package:app/domain/models/local_profile.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -105,7 +106,7 @@ void main() {
     expect(result['failure'], 'storageUnavailable');
     expect((await repo.load()).value!.name.value, 'Robin');
     final db = sqlite3.open(path);
-    expect(db.select('PRAGMA user_version').single.values.single, 7);
+    expect(db.select('PRAGMA user_version').single.values.single, 8);
     db.close();
   });
   test(

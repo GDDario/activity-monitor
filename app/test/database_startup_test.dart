@@ -1,5 +1,3 @@
-import 'helpers/profile_ready.dart';
-
 import 'dart:io';
 
 import 'package:flutter/widgets.dart';
@@ -7,6 +5,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
+
+import 'helpers/profile_ready.dart';
 
 import 'package:app/app/activity_monitor_app.dart';
 import 'package:app/app/dependencies/app_dependencies.dart';
@@ -31,8 +31,8 @@ void main() {
       expect(await File(path).exists(), isTrue);
       final db = sqlite3.open(path);
       addTearDown(db.close);
-      expect(db.select('PRAGMA user_version').single.values.single, 7);
-      expect(db.select('SELECT * FROM migrations').length, 7);
+      expect(db.select('PRAGMA user_version').single.values.single, 8);
+      expect(db.select('SELECT * FROM migrations').length, 8);
       expect(db.select('SELECT * FROM tasks'), isNotEmpty);
     },
   );

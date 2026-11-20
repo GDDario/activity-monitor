@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart' hide DayPeriod;
 import 'package:flutter/services.dart';
+
 import 'package:app/domain/models/task.dart';
 import 'package:app/domain/value_objects/local_date.dart';
+import 'package:app/domain/value_objects/reminder_preference.dart';
 import 'package:app/domain/value_objects/time_window.dart';
 import 'package:app/domain/value_objects/weekly_days.dart';
-import 'package:app/domain/value_objects/reminder_preference.dart';
 import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/tasks/task_localizations.dart';
-import 'package:app/ui/tasks/widgets/task_companion_selector.dart';
 import 'package:app/ui/tasks/view_models/task_editor_view_model.dart';
+import 'package:app/ui/tasks/widgets/task_companion_selector.dart';
+import 'package:app/ui/tracking/widgets/task_tracking_setup_panel.dart';
 
 class TaskEditorSheet extends StatefulWidget {
   const TaskEditorSheet({super.key, required this.model});
@@ -396,6 +398,8 @@ class _TaskEditorSheetState extends State<TaskEditorSheet> {
                             ),
                           ),
                           const SizedBox(height: 12),
+                          if (model.trackingForm != null)
+                            TaskTrackingSetupPanel(model: model),
                           TaskCompanionSelector(model: model),
                           Text(l.text('tags')),
                           if ((state.isDirty || state.showErrors) &&

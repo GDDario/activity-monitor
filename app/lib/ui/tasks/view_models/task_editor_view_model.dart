@@ -2,14 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:app/domain/models/task.dart';
 import 'package:app/domain/models/person.dart';
+import 'package:app/domain/models/task.dart';
 import 'package:app/domain/models/task_result.dart';
+import 'package:app/domain/models/task_tracking.dart';
 import 'package:app/domain/value_objects/occurrence_id.dart';
 import 'package:app/domain/value_objects/subtask_id.dart';
 import 'package:app/domain/value_objects/tag_id.dart';
 import 'package:app/domain/value_objects/task_id.dart';
 import 'package:app/domain/value_objects/weekly_days.dart';
+import 'package:app/ui/tracking/view_models/tracking_form_model.dart';
 
 enum DraftDismissal { close, confirmDiscard, blocked }
 
@@ -56,8 +58,101 @@ class TaskEditorViewModel extends ChangeNotifier {
     this._checkOverlap,
     this._load,
     this.loadPeople,
+    this.loadTypes,
   }) : _validate = validate,
        _state = TaskEditorState(draft: draft, fieldErrors: validate(draft));
+
+  final Future<List<TaskType>> Function()? loadTypes;
+  List<TaskType> types = [];
+  String? typesFailure;
+  TrackingFormModel? trackingForm;
+  void _bindTracking() {
+    trackingForm?.dispose();
+    final s = state.draft.tracking;
+    trackingForm = TrackingFormModel(
+      type: s.type,
+      scope: FieldScope.setup,
+      values: s.values,
+    );
+    trackingForm!.addListener(() {
+      if (canEdit) {
+        change(
+          state.draft.copyWith(
+            tracking: state.draft.tracking.copyWith(
+              values: trackingForm!.values,
+            ),
+          ),
+        );
+      }
+    });
+  }
+
+  Future<void> refreshTypes() async {
+    if (loadTypes == null || _disposed) return;
+    try {
+      types = await loadTypes!();
+      if (_disposed) return;
+      typesFailure = null;
+      final current = state.draft.tracking;
+      final latest = types.where((t) => t.id == current.type.id).firstOrNull;
+      if (latest != null && latest.revision != current.type.revision) {
+        _set(
+          draft: state.draft.copyWith(tracking: current.refreshType(latest)),
+        );
+      }
+      _bindTracking();
+    } catch (_) {
+      if (_disposed) return;
+      typesFailure = 'storageUnavailable';
+    }
+    notifyListeners();
+  }
+
+  void selectMainMetric(String? id) {
+    final current = state.draft.tracking;
+    change(
+      state.draft.copyWith(
+        tracking: id == null
+            ? current.copyWith(clearTarget: true)
+            : current.copyWith(mainMetric: id),
+      ),
+    );
+  }
+
+  void changeTrackingTarget(String text) {
+    final target = text.trim().isEmpty
+        ? null
+        : double.tryParse(text.replaceAll(',', '.'));
+    if (text.trim().isNotEmpty &&
+        (target == null || !target.isFinite || target <= 0)) {
+      setInputError('trackingTarget', 'invalid');
+      return;
+    }
+    setInputError('trackingTarget', null);
+    final s = state.draft.tracking;
+    change(
+      state.draft.copyWith(
+        tracking: TrackingSetup(
+          type: s.type,
+          values: s.values,
+          mainMetric: s.mainMetric,
+          target: target,
+          finishDate: s.finishDate,
+          closures: s.closures,
+          history: s.history,
+        ),
+      ),
+    );
+  }
+
+  void selectType(TaskType type) {
+    if (!canEdit) return;
+    change(
+      state.draft.copyWith(tracking: state.draft.tracking.changeType(type)),
+    );
+    _bindTracking();
+    notifyListeners();
+  }
 
   final Future<PeopleResult<PeopleSnapshot>> Function()? loadPeople;
   List<Person> get people => state.peopleChoices.people;
@@ -104,7 +199,8 @@ class TaskEditorViewModel extends ChangeNotifier {
       !_state.isSaving &&
       !_state.isLoadFailed &&
       !_state.hasSaved;
-  bool get canSave => canEdit && _state.fieldErrors.isEmpty;
+  bool get canSave =>
+      canEdit && typesFailure == null && _state.fieldErrors.isEmpty;
   String? get firstInvalidField => _state.fieldErrors.keys.firstOrNull;
 
   void _set({
@@ -329,6 +425,7 @@ class TaskEditorViewModel extends ChangeNotifier {
     _loadSequence++;
     _advisorySequence++;
     _advisoryTimer?.cancel();
+    trackingForm?.dispose();
     super.dispose();
   }
 }

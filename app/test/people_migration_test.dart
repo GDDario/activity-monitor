@@ -1,7 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
-import 'package:app/data/services/database/migrations.dart';
+
 import 'package:app/data/services/database/calendar_seeder.dart';
+import 'package:app/data/services/database/migrations.dart';
 import 'package:app/data/services/database/migrations/migration_0001_create_calendar_tables.dart';
 import 'package:app/data/services/database/migrations/migration_0002_seed_calendar_examples.dart';
 import 'package:app/data/services/database/migrations/migration_0003_add_calendar_completion.dart';
@@ -36,7 +37,7 @@ void main() {
         '😀' * 120,
       ]);
       migrateDatabase(db);
-      expect(db.select('PRAGMA user_version').single.values.single, 7);
+      expect(db.select('PRAGMA user_version').single.values.single, 8);
       expect(
         db
             .select(

@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
+
+import 'package:app/data/repositories/people_repository.dart';
 import 'package:app/data/services/database/app_database.dart';
 import 'package:app/data/services/people_database.dart';
-import 'package:app/data/repositories/people_repository.dart';
 import 'package:app/domain/models/person.dart';
 import 'package:app/domain/value_objects/local_date.dart';
 
@@ -78,7 +79,7 @@ void main() {
   );
   test('migration preserves participants and existing links; empty history is explicit', () async {
     final db = sqlite3.open(path);
-    expect(db.select('PRAGMA user_version').single.values.single, 7);
+    expect(db.select('PRAGMA user_version').single.values.single, 8);
     final original =
         db.select('SELECT id FROM calendar_participants').first['id'] as String;
     db.close();

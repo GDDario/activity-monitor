@@ -7,12 +7,10 @@ import 'package:app/data/services/database/migrations/migration_0001_create_cale
 import 'package:app/data/services/database/migrations/migration_0002_seed_calendar_examples.dart';
 import 'package:app/data/services/database/migrations/migration_0003_add_calendar_completion.dart';
 import 'package:app/data/services/database/migrations/migration_0004_create_task_tables.dart';
-
 import 'package:app/data/services/database/migrations/migration_0005_add_people_metadata.dart';
-
 import 'package:app/data/services/database/migrations/migration_0006_create_local_profile.dart';
-
 import 'package:app/data/services/database/migrations/migration_0007_create_notification_settings.dart';
+import 'package:app/data/services/database/migrations/migration_0008_add_task_tracking.dart';
 
 export 'package:app/data/services/database/database_migration.dart';
 
@@ -34,6 +32,7 @@ void migrateDatabase(
         const Migration0005AddPeopleMetadata(),
         const Migration0006CreateLocalProfile(),
         const Migration0007CreateNotificationSettings(),
+        const Migration0008AddTaskTracking(),
       ];
   for (var i = 0; i < steps.length; i++) {
     if (steps[i].version != i + 1) {

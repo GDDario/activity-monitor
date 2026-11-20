@@ -146,3 +146,24 @@ directory if it already exists. Other platforms use their own application
 support directory; locate it through the platform's app-container tools. On a
 disposable Android emulator, clearing the app's storage is another option, but
 it removes all app data, not just the database.
+
+## Task types, custom fields, and activity metrics
+
+Choose a task type in the task editor to reveal its setup fields. Today’s
+**Task types** action lets you create custom types and configure text, number,
+date, checkbox, choice, duration, exercise-set, episode-list, and checklist fields.
+Each field belongs to task setup or individual activity logs. Built-in types
+cannot be edited, but can be hidden from the picker and restored.
+
+Use **Task details** on a card to record sessions, inspect charts and summaries,
+correct logs, or start a duration timer. Progress logging and occurrence
+completion are independent. A desired finish date suggests a pace for additive
+progress; **Finish task** stops future occurrences while retaining history.
+Finished tasks remain accessible from Today and can be reopened.
+
+Migration 8 adds the catalog, tracking setup snapshots, activity logs, and a
+singleton durable timer. Field names, kinds, units, and values in historical
+logs remain readable after type changes. Replacing a field’s kind or unit creates
+another identity instead of converting historical values. Catalog additions in
+future migrations use `installBuiltinTaskTypes` to preserve visibility and
+notice-dismissal preferences. All tracking data stays local to this installation.

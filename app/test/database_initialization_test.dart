@@ -17,7 +17,7 @@ void main() {
       final path = '${directory.path}/activity_monitor.db';
       initializeDatabaseAtPath(path);
       final first = sqlite3.open(path);
-      expect(first.select('PRAGMA user_version').single.values.single, 7);
+      expect(first.select('PRAGMA user_version').single.values.single, 8);
       first.execute(
         "INSERT INTO tasks (id, title, start_date, cadence) VALUES ('id', 'Walk', '2024-02-29', 'daily')",
       );

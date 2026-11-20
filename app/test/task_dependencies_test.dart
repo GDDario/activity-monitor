@@ -1,9 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:app/app/dependencies/task_dependencies.dart';
-import 'package:app/domain/value_objects/local_date.dart';
 
 import 'helpers/fake_task_repository.dart';
+import 'helpers/fake_tracking_repository.dart';
+
+import 'package:app/app/dependencies/task_dependencies.dart';
+import 'package:app/app/dependencies/tracking_dependencies.dart';
+import 'package:app/domain/value_objects/local_date.dart';
 
 void main() {
   test(
@@ -12,6 +15,9 @@ void main() {
       var id = 0;
       final container = ProviderContainer(
         overrides: [
+          trackingRepositoryProvider.overrideWith(
+            (ref) async => FakeTrackingRepository(),
+          ),
           taskRepositoryProvider.overrideWith(
             (ref) async => FakeTaskRepository(),
           ),

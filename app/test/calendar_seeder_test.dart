@@ -34,7 +34,7 @@ void main() {
       'one-time',
     });
     expect(db.select('SELECT * FROM task_participants'), isNotEmpty);
-    expect(db.select('SELECT migration, batch FROM migrations').length, 7);
+    expect(db.select('SELECT migration, batch FROM migrations').length, 8);
     migrateDatabase(
       db,
       calendarSeeder: CalendarSeeder(
@@ -43,7 +43,7 @@ void main() {
       ),
     );
     expect(db.select('SELECT * FROM tasks').length, entries.length);
-    expect(db.select('SELECT * FROM migrations').length, 7);
+    expect(db.select('SELECT * FROM migrations').length, 8);
   });
 
   test('upgrades legacy version one and preserves records', () {
@@ -82,8 +82,8 @@ void main() {
           .single['title'],
       'Saved',
     );
-    expect(db.select('PRAGMA user_version').single.values.single, 7);
-    expect(db.select('SELECT migration, batch FROM migrations').length, 7);
+    expect(db.select('PRAGMA user_version').single.values.single, 8);
+    expect(db.select('SELECT migration, batch FROM migrations').length, 8);
   });
 
   test('rolls back seeding and history when the seeder fails', () {
@@ -112,7 +112,7 @@ void main() {
         newId: const Uuid().v7,
       ),
     );
-    expect(db.select('SELECT * FROM migrations').length, 7);
+    expect(db.select('SELECT * FROM migrations').length, 8);
   });
 
   test(

@@ -1,15 +1,17 @@
 import 'package:app/data/repositories/task_repository.dart';
 import 'package:app/domain/models/task.dart';
 import 'package:app/domain/models/task_result.dart';
-import 'package:app/domain/value_objects/task_title.dart';
-import 'package:app/domain/value_objects/subtask_title.dart';
-import 'package:app/domain/value_objects/task_notes.dart';
-import 'package:app/domain/value_objects/tag_name.dart';
+import 'package:app/domain/models/task_tracking.dart';
+import 'package:app/domain/use_cases/ensure_task_occurrences.dart';
+import 'package:app/domain/use_cases/tracking_metrics.dart';
 import 'package:app/domain/value_objects/local_date.dart';
 import 'package:app/domain/value_objects/local_date_range.dart';
-import 'package:app/domain/use_cases/ensure_task_occurrences.dart';
 import 'package:app/domain/value_objects/occurrence_id.dart';
 import 'package:app/domain/value_objects/reminder_preference.dart';
+import 'package:app/domain/value_objects/subtask_title.dart';
+import 'package:app/domain/value_objects/tag_name.dart';
+import 'package:app/domain/value_objects/task_notes.dart';
+import 'package:app/domain/value_objects/task_title.dart';
 
 /// This is the single validation boundary used by Save and editor enablement.
 Map<String, String> validateTaskDraft(TaskDraft draft) {
@@ -22,6 +24,9 @@ Map<String, String> validateTaskDraft(TaskDraft draft) {
     }
   }
 
+  for (final e in validateTrackingHistory(draft.tracking, const []).entries) {
+    errors['tracking.${e.key}'] = e.value;
+  }
   validate('title', () => TaskTitle(draft.title));
   validate('notes', () => TaskNotes(draft.notes));
   if (draft.tags.length > 10) errors['tags'] = 'tooMany';
@@ -131,6 +136,7 @@ class SaveTask {
     List<TaskSubtask> inactive = const [],
   }) => Task(
     id: draft.taskId,
+    tracking: draft.tracking,
     title: TaskTitle(draft.title),
     notes: TaskNotes(draft.notes).value,
     priority: draft.priority,
@@ -363,7 +369,8 @@ TaskSchedule _withBoundary(TaskSchedule s, LocalDate from) => TaskSchedule(
   dayPeriod: s.dayPeriod,
 );
 bool _sameTaskContent(Task a, Task b) {
-  if (a.title != b.title ||
+  if (!sameTrackingSetup(a.tracking, b.tracking) ||
+      a.title != b.title ||
       a.notes != b.notes ||
       a.priority != b.priority ||
       a.schedule != b.schedule) {

@@ -1,16 +1,17 @@
+import 'package:app/data/services/tracking_codec.dart';
 import 'package:app/domain/models/task.dart';
-import 'package:app/domain/value_objects/task_id.dart';
-import 'package:app/domain/value_objects/occurrence_id.dart';
-import 'package:app/domain/value_objects/subtask_id.dart';
-import 'package:app/domain/value_objects/tag_id.dart';
-import 'package:app/domain/value_objects/task_title.dart';
-import 'package:app/domain/value_objects/subtask_title.dart';
-import 'package:app/domain/value_objects/task_notes.dart';
-import 'package:app/domain/value_objects/tag_name.dart';
 import 'package:app/domain/value_objects/local_date.dart';
+import 'package:app/domain/value_objects/occurrence_id.dart';
+import 'package:app/domain/value_objects/reminder_preference.dart';
+import 'package:app/domain/value_objects/subtask_id.dart';
+import 'package:app/domain/value_objects/subtask_title.dart';
+import 'package:app/domain/value_objects/tag_id.dart';
+import 'package:app/domain/value_objects/tag_name.dart';
+import 'package:app/domain/value_objects/task_id.dart';
+import 'package:app/domain/value_objects/task_notes.dart';
+import 'package:app/domain/value_objects/task_title.dart';
 import 'package:app/domain/value_objects/time_window.dart';
 import 'package:app/domain/value_objects/weekly_days.dart';
-import 'package:app/domain/value_objects/reminder_preference.dart';
 
 typedef TaskRow = Map<String, Object?>;
 TaskRow _map(Object? value) => Map<String, Object?>.from(value as Map);
@@ -66,6 +67,7 @@ Task taskFromRow(TaskRow graph) {
   final notes = TaskNotes(row['notes'] as String? ?? '').value;
   return Task(
     id: TaskId(row['id'] as String),
+    tracking: decodeTrackingSetup(row['tracking_setup']),
     title: title,
     notes: notes,
     priority: TaskPriority.values.byName(row['priority'] as String),

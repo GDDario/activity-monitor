@@ -1,14 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
 
+import 'helpers/task_migration_fixture.dart';
+
+import 'package:app/data/repositories/calendar_repository.dart';
 import 'package:app/data/services/calendar_database.dart';
 import 'package:app/data/services/database/migrations.dart';
-import 'package:app/data/repositories/calendar_repository.dart';
 import 'package:app/data/services/database/migrations/migration_0004_create_task_tables.dart';
 import 'package:app/domain/value_objects/local_date.dart';
 import 'package:app/domain/value_objects/local_date_range.dart';
-
-import 'helpers/task_migration_fixture.dart';
 
 void main() {
   test(
@@ -41,7 +41,7 @@ void main() {
     final db = sqlite3.openInMemory();
     addTearDown(db.close);
     migrateDatabase(db);
-    expect(db.select('PRAGMA user_version').single.values.single, 7);
+    expect(db.select('PRAGMA user_version').single.values.single, 8);
     db.execute('DELETE FROM tasks');
     db.execute('DELETE FROM calendar_participants');
     db.execute(
