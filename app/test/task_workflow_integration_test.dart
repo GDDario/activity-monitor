@@ -1,5 +1,3 @@
-import 'helpers/profile_ready.dart';
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,13 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/fake_people_repository.dart';
+import 'helpers/fake_task_repository.dart';
+import 'helpers/fake_tracking_repository.dart';
+import 'helpers/profile_ready.dart';
+
 import 'package:app/app/activity_monitor_app.dart';
 import 'package:app/app/dependencies/app_dependencies.dart';
+import 'package:app/app/dependencies/people_repository_dependencies.dart';
 import 'package:app/app/dependencies/task_dependencies.dart';
+import 'package:app/app/dependencies/tracking_dependencies.dart';
 import 'package:app/data/repositories/local_task_repository.dart';
 import 'package:app/data/services/database/app_database.dart';
 import 'package:app/data/services/task_database.dart';
 import 'package:app/domain/models/calendar_data.dart';
+import 'package:app/domain/models/person.dart';
 import 'package:app/domain/models/task.dart';
 import 'package:app/domain/use_cases/delete_task_occurrence.dart';
 import 'package:app/domain/use_cases/ensure_task_occurrences.dart';
@@ -22,12 +28,6 @@ import 'package:app/domain/value_objects/local_date.dart';
 import 'package:app/domain/value_objects/local_date_range.dart';
 import 'package:app/domain/value_objects/weekly_days.dart';
 import 'package:app/ui/tasks/views/task_editor_sheet.dart';
-
-import 'helpers/fake_task_repository.dart';
-import 'helpers/fake_people_repository.dart';
-
-import 'package:app/domain/models/person.dart';
-import 'package:app/app/dependencies/people_repository_dependencies.dart';
 
 void main() {
   testWidgets(
@@ -42,6 +42,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            trackingRepositoryProvider.overrideWith(
+              (ref) async => FakeTrackingRepository(),
+            ),
             ...profileReadyOverrides(),
             peopleRepositoryProvider.overrideWith((ref) async => people),
             databaseInitializationProvider.overrideWith(

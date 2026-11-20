@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:app/app/dependencies/task_dependencies.dart';
+
 import 'package:app/app/dependencies/people_repository_dependencies.dart';
+import 'package:app/app/dependencies/task_dependencies.dart';
 import 'package:app/domain/models/person.dart';
 import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/people/people_localizations.dart';
@@ -12,6 +14,7 @@ import 'package:app/ui/people/views/people_view.dart';
 import 'package:app/ui/tasks/views/open_task_editor.dart';
 import 'package:app/ui/tasks/widgets/task_card.dart';
 import 'package:app/ui/tasks/widgets/task_undo_banner.dart';
+import 'package:app/ui/tracking/views/open_tracking.dart';
 
 class PersonDetailSheet extends ConsumerStatefulWidget {
   const PersonDetailSheet({
@@ -167,6 +170,21 @@ class _PersonDetailSheetState extends ConsumerState<PersonDetailSheet> {
                         const SizedBox(height: 4),
                         TaskCard(
                           aggregate: entry,
+                          onOpen: () => openTaskTracking(
+                            context,
+                            ref,
+                            entry.task.id.value,
+                            aggregate: entry,
+                            onEdit: () => openTaskEditor(
+                              context,
+                              ref,
+                              TaskEditorRequest(
+                                date: entry.occurrence.effectiveDate,
+                                taskId: entry.task.id,
+                                occurrenceId: entry.occurrence.id,
+                              ),
+                            ),
+                          ),
                           actions: actions,
                           onEdit: () => openTaskEditor(
                             context,

@@ -1,16 +1,17 @@
-import 'package:app/domain/models/task_schedule.dart';
 import 'package:app/domain/models/task_occurrence.dart';
+import 'package:app/domain/models/task_schedule.dart';
 import 'package:app/domain/models/task_subtask.dart';
-import 'package:app/domain/value_objects/task_id.dart';
-import 'package:app/domain/value_objects/occurrence_id.dart';
-import 'package:app/domain/value_objects/tag_id.dart';
-import 'package:app/domain/value_objects/task_title.dart';
-import 'package:app/domain/value_objects/task_notes.dart';
-import 'package:app/domain/value_objects/tag_name.dart';
+import 'package:app/domain/models/task_tracking.dart';
 import 'package:app/domain/value_objects/local_date.dart';
+import 'package:app/domain/value_objects/occurrence_id.dart';
+import 'package:app/domain/value_objects/reminder_preference.dart';
+import 'package:app/domain/value_objects/tag_id.dart';
+import 'package:app/domain/value_objects/tag_name.dart';
+import 'package:app/domain/value_objects/task_id.dart';
+import 'package:app/domain/value_objects/task_notes.dart';
+import 'package:app/domain/value_objects/task_title.dart';
 import 'package:app/domain/value_objects/time_window.dart';
 import 'package:app/domain/value_objects/weekly_days.dart';
-import 'package:app/domain/value_objects/reminder_preference.dart';
 
 export 'task_schedule.dart';
 export 'task_occurrence.dart';
@@ -46,10 +47,12 @@ class Task {
     this.revision = 0,
     this.createdAtUtc,
     this.updatedAtUtc,
+    TrackingSetup? tracking,
     List<TaskTag> tags = const [],
     List<TaskSubtask> subtasks = const [],
     List<TaskParticipant> participants = const [],
-  }) : tags = List.unmodifiable(tags),
+  }) : tracking = tracking ?? TrackingSetup(),
+       tags = List.unmodifiable(tags),
        subtasks = List.unmodifiable(subtasks),
        participants = List.unmodifiable(participants) {
     if (revision < 0 ||
@@ -59,6 +62,7 @@ class Task {
     }
     TaskNotes(notes);
   }
+  final TrackingSetup tracking;
   final TaskId id;
   final TaskTitle title;
   final String notes;
@@ -135,11 +139,13 @@ class TaskDraft {
     this.occurrenceTimeWindow,
     this.occurrenceReminder = const ReminderPreference.off(),
     this.hasOccurrenceOverride = false,
+    TrackingSetup? tracking,
     List<DraftTag> tags = const [],
     List<DraftSubtask> subtasks = const [],
     List<TaskParticipant>? participants,
     this.expected,
-  }) : participants = participants == null
+  }) : tracking = tracking ?? TrackingSetup(),
+       participants = participants == null
            ? null
            : List.unmodifiable(participants),
        startDate = startDate ?? date,
@@ -164,6 +170,7 @@ class TaskDraft {
       date: o.effectiveDate,
       startDate: s.startDate,
       title: t.title.value,
+      tracking: t.tracking,
       notes: t.notes,
       priority: t.priority,
       cadence: s.cadence,
@@ -193,6 +200,7 @@ class TaskDraft {
       expected: value.expected,
     );
   }
+  final TrackingSetup tracking;
   final TaskId taskId;
   final OccurrenceId occurrenceId;
   final LocalDate date;
@@ -231,6 +239,7 @@ class TaskDraft {
     Object? occurrenceTimeWindow = _keep,
     ReminderPreference? occurrenceReminder,
     bool? hasOccurrenceOverride,
+    TrackingSetup? tracking,
     List<DraftTag>? tags,
     List<DraftSubtask>? subtasks,
     List<TaskParticipant>? participants,
@@ -260,6 +269,7 @@ class TaskDraft {
         : occurrenceTimeWindow as TimeWindow?,
     occurrenceReminder: occurrenceReminder ?? this.occurrenceReminder,
     hasOccurrenceOverride: hasOccurrenceOverride ?? this.hasOccurrenceOverride,
+    tracking: tracking ?? this.tracking,
     tags: tags ?? this.tags,
     subtasks: subtasks ?? this.subtasks,
     participants: participants ?? this.participants,

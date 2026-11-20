@@ -79,10 +79,11 @@ final class BuildDailyOverview {
 
   DailyAgendaPeriod _period(TaskAggregate a) {
     final start = a.occurrence.timeWindow?.startMinute;
-    if (start != null)
+    if (start != null) {
       return start < 720
           ? DailyAgendaPeriod.morning
           : DailyAgendaPeriod.afternoonEvening;
+    }
     return switch (a.task.schedule.dayPeriod) {
       DayPeriod.morning => DailyAgendaPeriod.morning,
       DayPeriod.afternoon ||

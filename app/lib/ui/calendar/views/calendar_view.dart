@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app/app/dependencies/app_dependencies.dart';
 import 'package:app/app/dependencies/task_dependencies.dart';
+import 'package:app/domain/models/calendar_data.dart';
 import 'package:app/domain/value_objects/local_date.dart';
 import 'package:app/domain/value_objects/local_date_range.dart';
-import 'package:app/ui/tasks/task_localizations.dart';
-import 'package:app/ui/tasks/views/open_task_editor.dart';
-import 'package:app/ui/tasks/widgets/task_card.dart';
-import 'package:app/ui/tasks/widgets/task_undo_banner.dart';
-import 'package:app/domain/models/calendar_data.dart';
 import 'package:app/ui/calendar/view_models/calendar_view_model.dart';
 import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/core/widgets/application_shell.dart';
 import 'package:app/ui/core/widgets/screen_title_bar.dart';
+import 'package:app/ui/tasks/task_localizations.dart';
+import 'package:app/ui/tasks/views/open_task_editor.dart';
+import 'package:app/ui/tasks/widgets/task_card.dart';
+import 'package:app/ui/tasks/widgets/task_undo_banner.dart';
+import 'package:app/ui/tracking/views/open_tracking.dart';
 
 class CalendarView extends ConsumerWidget {
   const CalendarView({super.key});
@@ -469,6 +471,25 @@ class CalendarView extends ConsumerWidget {
                     child: entry.taskAggregate != null
                         ? TaskCard(
                             aggregate: entry.taskAggregate!,
+                            onOpen: () => openTaskTracking(
+                              context,
+                              ref,
+                              entry.taskAggregate!.task.id.value,
+                              aggregate: entry.taskAggregate!,
+                              onEdit: () => openTaskEditor(
+                                context,
+                                ref,
+                                TaskEditorRequest(
+                                  date: entry
+                                      .taskAggregate!
+                                      .occurrence
+                                      .effectiveDate,
+                                  taskId: entry.taskAggregate!.task.id,
+                                  occurrenceId:
+                                      entry.taskAggregate!.occurrence.id,
+                                ),
+                              ),
+                            ),
                             actions: actions,
                             streak: model
                                 .streaks[entry.taskAggregate!.task.id.value],

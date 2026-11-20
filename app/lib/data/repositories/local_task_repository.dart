@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:app/data/repositories/task_repository.dart';
 import 'package:app/data/services/task_database.dart';
 import 'package:app/data/services/task_row_mapper.dart';
+import 'package:app/data/services/tracking_codec.dart';
 import 'package:app/domain/models/task.dart';
 import 'package:app/domain/models/task_ordering.dart';
 import 'package:app/domain/models/task_result.dart';
@@ -318,6 +320,7 @@ Map<String, Object?> _scheduleRow(TaskSchedule s) => {
 };
 Map<String, Object?> _taskRow(Task t) => {
   'id': t.id.value,
+  'tracking_setup': jsonEncode(encodeTrackingSetup(t.tracking)),
   'title': t.title.value,
   'notes': t.notes.isEmpty ? null : t.notes,
   'priority': t.priority.name,

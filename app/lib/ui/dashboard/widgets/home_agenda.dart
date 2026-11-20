@@ -15,11 +15,13 @@ class HomeAgenda extends StatelessWidget {
     required this.actions,
     required this.streaks,
     required this.onEdit,
+    this.onOpen,
   });
   final List<DailyAgendaSection> sections;
   final TaskActionsViewModel actions;
   final Map<TaskId, int> streaks;
   final ValueChanged<TaskAggregate> onEdit;
+  final ValueChanged<TaskAggregate>? onOpen;
   @override
   Widget build(BuildContext context) {
     final l = HomeLocalizations.of(context);
@@ -66,6 +68,7 @@ class HomeAgenda extends StatelessWidget {
                 actions: actions,
                 streak: streaks[aggregate.task.id],
                 onEdit: () => onEdit(aggregate),
+                onOpen: onOpen == null ? null : () => onOpen!(aggregate),
                 showNotesPreview: true,
               ),
             ),

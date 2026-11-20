@@ -14,6 +14,8 @@ import 'package:app/ui/dashboard/widgets/home_summary.dart';
 import 'package:app/ui/tasks/task_localizations.dart';
 import 'package:app/ui/tasks/views/open_task_editor.dart';
 import 'package:app/ui/tasks/widgets/task_undo_banner.dart';
+import 'package:app/ui/tracking/views/open_tracking.dart';
+import 'package:app/ui/tracking/widgets/tracking_home_tools.dart';
 
 class DashboardView extends ConsumerWidget {
   const DashboardView({super.key});
@@ -48,6 +50,7 @@ class DashboardView extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 192),
                 children: [
                   HomeHeader(now: state.now),
+                  const TrackingHomeTools(),
                   const SizedBox(height: 16),
                   HomeFilters(
                     scope: state.scope,
@@ -83,6 +86,21 @@ class DashboardView extends ConsumerWidget {
                       sections: overview.sections,
                       actions: actions,
                       streaks: state.streaks,
+                      onOpen: (aggregate) => openTaskTracking(
+                        context,
+                        ref,
+                        aggregate.task.id.value,
+                        aggregate: aggregate,
+                        onEdit: () => openTaskEditor(
+                          context,
+                          ref,
+                          TaskEditorRequest(
+                            date: aggregate.occurrence.effectiveDate,
+                            taskId: aggregate.task.id,
+                            occurrenceId: aggregate.occurrence.id,
+                          ),
+                        ),
+                      ),
                       onEdit: (aggregate) => openTaskEditor(
                         context,
                         ref,

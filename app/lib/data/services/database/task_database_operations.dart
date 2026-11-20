@@ -1,5 +1,8 @@
 import 'package:sqlite3/sqlite3.dart';
+
 import 'package:app/data/services/task_row_mapper.dart' as domain_mapping;
+import 'package:app/data/services/tracking_codec.dart';
+import 'package:app/data/services/tracking_database.dart';
 import 'package:app/domain/value_objects/local_date.dart';
 
 typedef TaskRow = Map<String, Object?>;
@@ -331,6 +334,23 @@ Map<String, Object?> commitTaskSave(Database db, Map<String, Object?> request) {
     final task = Map<String, Object?>.from(request['task'] as Map);
     final occurrence = Map<String, Object?>.from(request['occurrence'] as Map);
     final taskId = task['id'] as String;
+    final hasTracking = db
+        .select('PRAGMA table_info(tasks)')
+        .any((c) => c['name'] == 'tracking_setup');
+    if (hasTracking) {
+      try {
+        validateTrackingSetupForSave(
+          db,
+          decodeTrackingSetup(task['tracking_setup']),
+          taskId: taskId,
+        );
+      } on TrackingStorageConflict catch (failure) {
+        throw TaskDatabaseConflict(failure.code);
+      }
+    } else {
+      // Historical migration tests and old-schema tooling keep their original contract.
+      task.remove('tracking_setup');
+    }
     final occurrenceId = occurrence['id'] as String;
     final expected = request['expected'];
     final create = expected == null;

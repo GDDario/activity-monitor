@@ -1,9 +1,10 @@
-import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:flutter/material.dart';
 
 import 'package:app/domain/models/task.dart';
+import 'package:app/ui/core/theme/activity_palette.dart';
 import 'package:app/ui/tasks/task_localizations.dart';
 import 'package:app/ui/tasks/view_models/task_actions_view_model.dart';
+import 'package:app/ui/tracking/tracking_strings.dart';
 
 import 'swipe_task_card.dart';
 
@@ -14,11 +15,13 @@ class TaskCard extends StatelessWidget {
     required this.actions,
     required this.onEdit,
     this.streak,
+    this.onOpen,
     this.showNotesPreview = false,
   });
   final TaskAggregate aggregate;
   final TaskActionsViewModel actions;
   final VoidCallback onEdit;
+  final VoidCallback? onOpen;
   final int? streak;
   final bool showNotesPreview;
 
@@ -82,19 +85,22 @@ class TaskCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              task.title.value,
-                              style: Theme.of(context).textTheme.headlineSmall
-                                  ?.copyWith(
-                                    decoration: occurrence.completed
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                                    color: occurrence.completed
-                                        ? Theme.of(context)
-                                              .colorScheme
-                                              .secondary
-                                        : null,
-                                  ),
+                            InkWell(
+                              onTap: onOpen,
+                              child: Text(
+                                task.title.value,
+                                style: Theme.of(context).textTheme.headlineSmall
+                                    ?.copyWith(
+                                      decoration: occurrence.completed
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                      color: occurrence.completed
+                                          ? Theme.of(context)
+                                                .colorScheme
+                                                .secondary
+                                          : null,
+                                    ),
+                              ),
                             ),
                             if (showNotesPreview &&
                                 task.notes.trim().isNotEmpty) ...[
@@ -205,6 +211,17 @@ class TaskCard extends StatelessWidget {
                     height: 20,
                     color: ActivityPalette.of(context).border,
                   ),
+                  if (onOpen != null)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: onOpen,
+                        icon: Icon(trackingIcon(task.tracking.type.icon)),
+                        label: Text(
+                          TrackingStrings.of(context).text('details'),
+                        ),
+                      ),
+                    ),
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app/app/dependencies/database_dependencies.dart';
 import 'package:app/app/dependencies/people_repository_dependencies.dart';
+import 'package:app/app/dependencies/tracking_dependencies.dart';
 import 'package:app/data/repositories/local_task_repository.dart';
 import 'package:app/data/repositories/task_repository.dart';
 import 'package:app/data/services/task_database.dart';
@@ -40,7 +41,27 @@ final taskRepositoryProvider = FutureProvider<TaskRepository>((ref) async {
 });
 final taskChangesProvider = StreamProvider<TaskChange>((ref) async* {
   final repository = await ref.watch(taskRepositoryProvider.future);
-  yield* repository.changes;
+  final tracking = await ref.watch(trackingRepositoryProvider.future);
+  final controller = StreamController<TaskChange>();
+  final first = repository.changes.listen(
+    controller.add,
+    onError: controller.addError,
+  );
+  final second = tracking.changes.listen(
+    (_) => controller.add(
+      TaskChange(
+        taskIds: const {},
+        dates: const {},
+        sharedMetadataChanged: true,
+      ),
+    ),
+  );
+  ref.onDispose(() {
+    unawaited(first.cancel());
+    unawaited(second.cancel());
+    unawaited(controller.close());
+  });
+  yield* controller.stream;
 });
 
 final ensureTaskRangeProvider =
@@ -136,6 +157,8 @@ final taskEditorFactoryProvider =
           save: (draft) => save.execute(draft, requestedRange: request.range),
           checkOverlap: overlap.execute,
           load: repo.loadTask,
+          loadTypes: (await ref.read(trackingRepositoryProvider.future))
+              .loadTypes,
           loadPeople: () async =>
               (await ref.read(peopleRepositoryProvider.future))
                   .loadSnapshot(request.date),
@@ -143,6 +166,7 @@ final taskEditorFactoryProvider =
         if (request.taskId != null && request.occurrenceId != null) {
           await model.loadExisting(request.taskId!, request.occurrenceId!);
         }
+        await model.refreshTypes();
         await model.refreshPeople();
         return model;
       },

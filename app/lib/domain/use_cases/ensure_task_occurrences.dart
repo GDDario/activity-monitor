@@ -1,9 +1,9 @@
 import 'package:app/data/repositories/task_repository.dart';
 import 'package:app/domain/models/task.dart';
 import 'package:app/domain/models/task_result.dart';
-import 'package:app/domain/value_objects/occurrence_id.dart';
 import 'package:app/domain/value_objects/local_date.dart';
 import 'package:app/domain/value_objects/local_date_range.dart';
+import 'package:app/domain/value_objects/occurrence_id.dart';
 
 /// Resolves archived half-open periods before the newest effective rule.
 TaskSchedule? scheduleAt(TaskScheduleSnapshot snapshot, LocalDate date) {
@@ -34,6 +34,7 @@ List<TaskOccurrence> expandTaskOccurrences(
   while (true) {
     final schedule = scheduleAt(snapshot, date);
     if (schedule != null &&
+        snapshot.task.tracking.allowsDate(date) &&
         schedule.recurrenceEnabled &&
         schedule.matches(date) &&
         !excludedSlots.contains(date)) {
